@@ -1,59 +1,71 @@
 <template>
-  <div v-if="show" class="modal-overlay" @click="handleCancel">
-    <div class="modal-dialog" @click.stop>
+  <div v-if="show" class="modal-overlay" @click="$emit('cancel')">
+    <div class="modal-content" @click.stop>
       <div class="modal-header">
-        <h3 class="modal-title">
-          <i data-lucide="edit-2" class="modal-icon"></i>
-          更新目录
-        </h3>
-        <button class="modal-close" @click="handleCancel">
-          <i data-lucide="x"></i>
+        <div class="modal-title">
+          <el-icon class="modal-icon"><EditPen /></el-icon>
+          <h3>更新目录</h3>
+        </div>
+        <button class="modal-close" @click="$emit('cancel')">
+          <el-icon><Close /></el-icon>
         </button>
       </div>
+      
       <div class="modal-body">
-        <form @submit.prevent="handleSubmit" class="directory-form">
+        <form @submit.prevent="handleSubmit">
           <div class="form-group">
-            <label for="updateName" class="form-label">目录名称</label>
-            <input 
-              type="text" 
-              id="updateName" 
+            <label for="directoryName" class="form-label">目录名称</label>
+            <input
+              id="directoryName"
               v-model="formData.name"
+              type="text"
               class="form-input"
               placeholder="请输入目录名称"
               required
             >
           </div>
+          
           <div class="form-group">
-            <label for="updateDescription" class="form-label">描述信息</label>
-            <textarea 
-              id="updateDescription" 
+            <label for="directoryDescription" class="form-label">目录描述</label>
+            <textarea
+              id="directoryDescription"
               v-model="formData.description"
               class="form-textarea"
               placeholder="请输入目录描述（可选）"
               rows="3"
             ></textarea>
           </div>
-          <div class="form-actions">
-            <button type="button" @click="handleCancel" class="btn btn-outline">
-              <i data-lucide="x" class="btn-icon"></i>
-              取消
-            </button>
-            <button type="submit" class="btn btn-primary">
-              <i data-lucide="save" class="btn-icon"></i>
-              更新目录
-            </button>
-          </div>
         </form>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" @click="$emit('cancel')">
+          <el-icon class="btn-icon"><Close /></el-icon>
+          取消
+        </button>
+        <button type="button" class="btn btn-primary" @click="handleSubmit" :disabled="!formData.name.trim()">
+          <el-icon class="btn-icon"><Check /></el-icon>
+          保存
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch } from 'vue'
+import toast from '@/utils/toast'
+// 导入Element Plus图标
+import { EditPen, Close, Check } from '@element-plus/icons-vue'
 
 export default {
   name: 'UpdateDirectoryModal',
+  components: {
+    // 注册图标组件
+    EditPen,
+    Close,
+    Check
+  },
   props: {
     show: {
       type: Boolean,
@@ -81,19 +93,10 @@ export default {
       }
     }, { immediate: true })
 
-    // 监听弹窗显示状态，初始化图标
-    watch(() => props.show, (show) => {
-      if (show && window.lucide) {
-        setTimeout(() => {
-          window.lucide.createIcons()
-        }, 100)
-      }
-    })
-
     const handleSubmit = () => {
       const name = formData.value.name.trim()
       if (!name) {
-        alert('目录名称不能为空')
+        toast.warning('目录名称不能为空')
         return
       }
 
@@ -106,12 +109,6 @@ export default {
     const handleCancel = () => {
       emit('cancel')
     }
-
-    onMounted(() => {
-      if (window.lucide) {
-        window.lucide.createIcons()
-      }
-    })
 
     return {
       formData,
@@ -129,55 +126,57 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background: var(--color-bg-modal);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: var(--z-index-modal);
+  z-index: 1000;
 }
 
-.modal-dialog {
-  background: var(--color-bg-overlay);
-  border-radius: var(--border-radius-xl);
+.modal-content {
+  background: white;
+  border-radius: 12px;
   overflow: hidden;
-  max-width: 400px;
-  width: 100%;
-  box-shadow: var(--shadow-lg);
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-xl);
-  border-bottom: 1px solid var(--color-border-light);
-  background: var(--color-bg-tertiary);
+  padding: 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
 }
 
 .modal-title {
   margin: 0;
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 8px;
 }
 
 .modal-icon {
   width: 20px;
   height: 20px;
+  font-size: 20px;
 }
 
 .modal-close {
   background: none;
   border: none;
-  font-size: var(--font-size-xl);
-  color: var(--color-text-secondary);
+  font-size: 18px;
+  color: #6b7280;
   cursor: pointer;
-  padding: var(--spacing-sm);
-  border-radius: var(--border-radius-md);
-  transition: all var(--transition-fast);
+  padding: 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
   width: 32px;
   height: 32px;
   display: flex;
@@ -186,13 +185,22 @@ export default {
 }
 
 .modal-close:hover {
-  background: var(--color-gray-100);
-  color: var(--color-text-primary);
+  background: #f3f4f6;
+  color: #374151;
   transform: scale(1.1);
 }
 
 .modal-body {
-  padding: var(--spacing-xl);
+  padding: 20px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
 }
 
 .directory-form {
@@ -204,31 +212,33 @@ export default {
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
 .form-label {
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
+  font-weight: 600;
+  color: #374151;
+  font-size: 14px;
 }
 
 .form-input,
 .form-textarea {
-  padding: var(--spacing-md);
-  border: 1px solid var(--color-border-medium);
-  border-radius: var(--border-radius-lg);
-  background: var(--color-bg-primary);
-  color: var(--color-text-primary);
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  color: #374151;
   font-family: inherit;
-  font-size: var(--font-size-base);
-  transition: all var(--transition-fast);
+  font-size: 14px;
+  transition: all 0.2s ease;
 }
 
 .form-input:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: var(--color-primary-500);
-  box-shadow: 0 0 0 3px var(--color-primary-100);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .form-textarea {
@@ -245,40 +255,66 @@ export default {
 .btn {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-radius: var(--border-radius-lg);
-  font-weight: var(--font-weight-medium);
-  transition: all var(--transition-normal);
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
   border: none;
   cursor: pointer;
   text-decoration: none;
-  font-size: var(--font-size-base);
+  font-size: 14px;
 }
 
-.btn-outline {
-  background: transparent;
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border-medium);
+.btn-secondary {
+  background: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
 }
 
-.btn-outline:hover {
-  background: var(--color-bg-tertiary);
-  border-color: var(--color-primary-300);
+.btn-secondary:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
-  color: var(--color-text-inverse);
+  background: #3b82f6;
+  color: white;
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .btn-icon {
   width: 18px;
   height: 18px;
+  font-size: 18px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    max-width: none;
+    margin: 16px;
+  }
+  
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: 16px;
+  }
+  
+  .modal-footer {
+    flex-direction: column-reverse;
+  }
+  
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 </style> 

@@ -5,7 +5,7 @@
       <header class="page-header">
         <div class="header-content">
           <div class="header-icon">
-            <i data-lucide="folder-cog" class="header-icon-svg"></i>
+            <el-icon class="header-icon-svg"><Setting /></el-icon>
           </div>
           <div class="header-text">
             <h1 class="page-title">目录管理</h1>
@@ -14,11 +14,11 @@
         </div>
         <div class="header-actions">
           <router-link to="/files" class="btn btn-secondary">
-            <i data-lucide="folder-open" class="btn-icon"></i>
+            <el-icon class="btn-icon"><FolderOpened /></el-icon>
             文件管理
           </router-link>
           <router-link to="/" class="btn btn-secondary">
-            <i data-lucide="home" class="btn-icon"></i>
+            <el-icon class="btn-icon"><HomeFilled /></el-icon>
             返回首页
           </router-link>
         </div>
@@ -27,22 +27,22 @@
       <!-- 工具栏 -->
       <div class="toolbar">
         <div class="toolbar-left">
-          <button class="btn btn-primary" disabled>
-            <i data-lucide="folder-plus" class="btn-icon"></i>
+          <button class="btn btn-primary" @click="handleCreateDirectory">
+            <el-icon class="btn-icon"><FolderAdd /></el-icon>
             新建文件夹
           </button>
           <button class="btn btn-outline" disabled>
-            <i data-lucide="edit-3" class="btn-icon"></i>
+            <el-icon class="btn-icon"><EditPen /></el-icon>
             批量操作
           </button>
         </div>
         <div class="toolbar-right">
           <div class="view-switcher">
             <button class="btn btn-icon active" title="列表视图">
-              <i data-lucide="list" class="view-icon"></i>
+              <el-icon class="view-icon"><List /></el-icon>
             </button>
             <button class="btn btn-icon" title="树形视图">
-              <i data-lucide="git-branch" class="view-icon"></i>
+              <el-icon class="view-icon"><Share /></el-icon>
             </button>
           </div>
         </div>
@@ -85,6 +85,14 @@
       @confirm="confirmDelete"
       @cancel="cancelOperation"
     />
+
+    <!-- 新建目录弹窗 -->
+    <CreateDirectoryModal
+      :show="showCreateModal"
+      :directories="allDirectories"
+      @create="confirmCreate"
+      @cancel="cancelOperation"
+    />
   </div>
 </template>
 
@@ -96,6 +104,18 @@ import DirectoryStats from '@/components/DirectoryStats.vue'
 import DirectoryTable from '@/components/DirectoryTable.vue'
 import UpdateDirectoryModal from '@/components/UpdateDirectoryModal.vue'
 import DeleteDirectoryModal from '@/components/DeleteDirectoryModal.vue'
+import CreateDirectoryModal from '@/components/CreateDirectoryModal.vue'
+import toast from '@/utils/toast'
+// 导入Element Plus图标
+import { 
+  Setting, 
+  FolderOpened, 
+  HomeFilled, 
+  FolderAdd, 
+  EditPen, 
+  List, 
+  Share 
+} from '@element-plus/icons-vue'
 
 export default {
   name: 'DirectoryManagement',
@@ -103,7 +123,16 @@ export default {
     DirectoryStats,
     DirectoryTable,
     UpdateDirectoryModal,
-    DeleteDirectoryModal
+    DeleteDirectoryModal,
+    CreateDirectoryModal,
+    // 注册图标组件
+    Setting,
+    FolderOpened,
+    HomeFilled,
+    FolderAdd,
+    EditPen,
+    List,
+    Share
   },
   setup() {
     const stats = ref(systemStats)
@@ -112,6 +141,7 @@ export default {
     // 弹窗相关状态
     const showUpdateModal = ref(false)
     const showDeleteModal = ref(false)
+    const showCreateModal = ref(false)
     const currentDirectory = ref(null)
     
     // 获取所有目录的扁平列表
@@ -135,12 +165,7 @@ export default {
       try {
         await directoryStore.fetchDirectoriesPage()
         
-        // 重新初始化图标
-        if (window.lucide) {
-          setTimeout(() => {
-            window.lucide.createIcons()
-          }, 100)
-        }
+        // Element Plus 图标会自动渲染，无需手动初始化
       } catch (error) {
         console.error('加载目录失败:', error)
       }
@@ -149,23 +174,13 @@ export default {
     // 处理页码变化
     const handlePageChange = async (page) => {
       await directoryStore.changePage(page)
-      // 重新初始化图标
-      if (window.lucide) {
-        setTimeout(() => {
-          window.lucide.createIcons()
-        }, 100)
-      }
+      // Element Plus 图标会自动渲染，无需手动初始化
     }
 
     // 处理每页数量变化
     const handlePageSizeChange = async (size) => {
       await directoryStore.changePageSize(size)
-      // 重新初始化图标
-      if (window.lucide) {
-        setTimeout(() => {
-          window.lucide.createIcons()
-        }, 100)
-      }
+      // Element Plus 图标会自动渲染，无需手动初始化
     }
 
     // 处理移动目录
@@ -173,7 +188,7 @@ export default {
       // TODO: 移动接口还没有完成，暂时只显示提示信息
       console.log('移动目录功能正在开发中:', directory.name)
       // 这里可以添加移动目录的逻辑
-      alert('移动功能正在开发中，敬请期待！')
+      toast.info('移动功能正在开发中，敬请期待！')
     }
 
     // 处理更新目录
@@ -188,6 +203,11 @@ export default {
       showDeleteModal.value = true
     }
 
+    // 处理新建目录
+    const handleCreateDirectory = () => {
+      showCreateModal.value = true
+    }
+
     // 确认更新目录
     const confirmUpdate = async (updates) => {
       if (!currentDirectory.value) return
@@ -198,17 +218,11 @@ export default {
         showUpdateModal.value = false
         currentDirectory.value = null
         
-        // 重新初始化图标
-        if (window.lucide) {
-          setTimeout(() => {
-            window.lucide.createIcons()
-          }, 100)
-        }
-        
-        alert('目录更新成功！')
+        // 显示成功提示
+        toast.success('目录更新成功！')
       } catch (error) {
         console.error('更新目录失败:', error)
-        alert(error.message || '更新目录失败')
+        toast.error(error.message || '更新目录失败')
       }
     }
 
@@ -222,17 +236,36 @@ export default {
         showDeleteModal.value = false
         currentDirectory.value = null
         
-        // 重新初始化图标
-        if (window.lucide) {
-          setTimeout(() => {
-            window.lucide.createIcons()
-          }, 100)
-        }
-        
-        alert('目录删除成功！')
+        // 显示成功提示
+        toast.success('目录删除成功！')
       } catch (error) {
         console.error('删除目录失败:', error)
-        alert(error.message || '删除目录失败')
+        toast.error(error.message || '删除目录失败')
+      }
+    }
+
+    // 确认创建目录
+    const confirmCreate = async (createData) => {
+      try {
+        await directoryStore.createDirectory(createData)
+        
+        showCreateModal.value = false
+        
+        // 显示成功提示
+        toast.success('目录创建成功！')
+      } catch (error) {
+        console.error('创建目录失败:', error)
+        
+        // 处理不同的错误类型
+        if (error.message.includes('目录名称重复') || error.message.includes('重复')) {
+          toast.error('目录名称重复，请使用其他名称')
+        } else if (error.message.includes('目录不存在')) {
+          toast.error('父目录不存在，请重新选择')
+        } else if (error.message.includes('不能为空')) {
+          toast.warning('目录名称不能为空')
+        } else {
+          toast.error(error.message || '创建目录失败')
+        }
       }
     }
 
@@ -240,17 +273,18 @@ export default {
     const cancelOperation = () => {
       showUpdateModal.value = false
       showDeleteModal.value = false
+      showCreateModal.value = false
       currentDirectory.value = null
     }
 
     onMounted(async () => {
-      // 初始化 Lucide 图标
-      if (window.lucide) {
-        window.lucide.createIcons()
-      }
+      // Element Plus 图标会自动渲染，无需手动初始化
       
-      // 加载目录数据
-      await loadDirectories()
+      // 同时加载分页数据和树形数据
+      await Promise.all([
+        loadDirectories(), // 加载分页的目录列表
+        directoryStore.fetchDirectoryTree() // 加载完整的目录树（用于新建时选择父目录）
+      ])
     })
 
 
@@ -265,12 +299,15 @@ export default {
       // 弹窗相关
       showUpdateModal,
       showDeleteModal,
+      showCreateModal,
       currentDirectory,
       handleMoveDirectory,
       handleUpdateDirectory,
       handleDeleteDirectory,
+      handleCreateDirectory,
       confirmUpdate,
       confirmDelete,
+      confirmCreate,
       cancelOperation
     }
   }
@@ -325,6 +362,7 @@ export default {
   width: 32px;
   height: 32px;
   color: var(--color-text-inverse);
+  font-size: 32px;
 }
 
 .header-text h1 {
@@ -412,6 +450,7 @@ export default {
 .view-icon {
   width: 16px;
   height: 16px;
+  font-size: 16px;
 }
 
 /* 按钮样式 */
@@ -554,6 +593,7 @@ export default {
 .btn-icon {
   width: 18px;
   height: 18px;
+  font-size: 18px;
 }
 
 /* 响应式设计 */

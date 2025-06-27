@@ -1,8 +1,8 @@
 <template>
   <div class="stats-grid">
     <div class="stats-card">
-      <div class="stats-icon">
-        <i data-lucide="folder" class="stats-icon-svg"></i>
+      <div class="stats-icon folders">
+        <el-icon class="stats-icon-svg"><Folder /></el-icon>
       </div>
       <div class="stats-content">
         <div class="stats-number">{{ stats.totalFolders.toLocaleString() }}</div>
@@ -10,8 +10,8 @@
       </div>
     </div>
     <div class="stats-card">
-      <div class="stats-icon">
-        <i data-lucide="file-text" class="stats-icon-svg"></i>
+      <div class="stats-icon files">
+        <el-icon class="stats-icon-svg"><Document /></el-icon>
       </div>
       <div class="stats-content">
         <div class="stats-number">{{ stats.totalFiles.toLocaleString() }}</div>
@@ -19,8 +19,8 @@
       </div>
     </div>
     <div class="stats-card">
-      <div class="stats-icon">
-        <i data-lucide="hard-drive" class="stats-icon-svg"></i>
+      <div class="stats-icon storage">
+        <el-icon class="stats-icon-svg"><Monitor /></el-icon>
       </div>
       <div class="stats-content">
         <div class="stats-number">{{ stats.totalSize }}</div>
@@ -28,8 +28,8 @@
       </div>
     </div>
     <div class="stats-card">
-      <div class="stats-icon">
-        <i data-lucide="clock" class="stats-icon-svg"></i>
+      <div class="stats-icon time">
+        <el-icon class="stats-icon-svg"><Clock /></el-icon>
       </div>
       <div class="stats-content">
         <div class="stats-number">{{ formatDate(stats.lastModified) }}</div>
@@ -41,9 +41,16 @@
 
 <script>
 import { onMounted } from 'vue'
+import { Folder, Document, Monitor, Clock } from '@element-plus/icons-vue'
 
 export default {
   name: 'DirectoryStats',
+  components: {
+    Folder,
+    Document,
+    Monitor,
+    Clock
+  },
   props: {
     stats: {
       type: Object,
@@ -61,9 +68,7 @@ export default {
     }
 
     onMounted(() => {
-      if (window.lucide) {
-        window.lucide.createIcons()
-      }
+      // Element Plus 图标会自动渲染，无需手动初始化
     })
 
     return {
@@ -126,6 +131,7 @@ export default {
   width: 28px;
   height: 28px;
   color: var(--color-primary-600);
+  font-size: 28px;
 }
 
 .stats-content {

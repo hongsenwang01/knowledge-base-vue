@@ -1,46 +1,53 @@
 <template>
-  <div v-if="show" class="modal-overlay" @click="handleCancel">
-    <div class="modal-dialog" @click.stop>
+  <div v-if="show" class="modal-overlay" @click="$emit('cancel')">
+    <div class="modal-content" @click.stop>
       <div class="modal-header">
-        <h3 class="modal-title">
-          <i data-lucide="trash-2" class="modal-icon text-danger"></i>
-          删除目录
-        </h3>
-        <button class="modal-close" @click="handleCancel">
-          <i data-lucide="x"></i>
+        <div class="modal-title">
+          <el-icon class="modal-icon text-danger"><Delete /></el-icon>
+          <h3>删除目录</h3>
+        </div>
+        <button class="modal-close" @click="$emit('cancel')">
+          <el-icon><Close /></el-icon>
         </button>
       </div>
+      
       <div class="modal-body">
-        <div class="delete-warning">
+        <div class="warning-content">
           <div class="warning-icon">
-            <i data-lucide="alert-triangle" class="warning-icon-svg"></i>
+            <el-icon class="warning-icon-svg"><WarningFilled /></el-icon>
           </div>
-          <div class="warning-content">
+          <div class="warning-text">
             <h4>确认删除目录</h4>
-            <p>您即将删除目录 <strong>"{{ directory?.name }}"</strong></p>
-            <p class="warning-text">此操作不可逆，请谨慎操作！</p>
+            <p>您即将删除目录 <strong>{{ directory?.name }}</strong>，此操作不可恢复。</p>
+            <p class="warning-note">请确认您真的要执行此操作。</p>
           </div>
         </div>
-        <div class="form-actions">
-          <button type="button" @click="handleCancel" class="btn btn-outline">
-            <i data-lucide="x" class="btn-icon"></i>
-            取消
-          </button>
-          <button type="button" @click="handleConfirm" class="btn btn-danger">
-            <i data-lucide="trash-2" class="btn-icon"></i>
-            确认删除
-          </button>
-        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" @click="$emit('cancel')">
+          <el-icon class="btn-icon"><Close /></el-icon>
+          取消
+        </button>
+        <button type="button" class="btn btn-danger" @click="$emit('confirm')">
+          <el-icon class="btn-icon"><Delete /></el-icon>
+          确认删除
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { watch, onMounted } from 'vue'
+import { Delete, Close, WarningFilled } from '@element-plus/icons-vue'
 
 export default {
   name: 'DeleteDirectoryModal',
+  components: {
+    Delete,
+    Close,
+    WarningFilled
+  },
   props: {
     show: {
       type: Boolean,
@@ -53,15 +60,6 @@ export default {
   },
   emits: ['confirm', 'cancel'],
   setup(props, { emit }) {
-    // 监听弹窗显示状态，初始化图标
-    watch(() => props.show, (show) => {
-      if (show && window.lucide) {
-        setTimeout(() => {
-          window.lucide.createIcons()
-        }, 100)
-      }
-    })
-
     const handleConfirm = () => {
       emit('confirm')
     }
@@ -69,12 +67,6 @@ export default {
     const handleCancel = () => {
       emit('cancel')
     }
-
-    onMounted(() => {
-      if (window.lucide) {
-        window.lucide.createIcons()
-      }
-    })
 
     return {
       handleConfirm,
@@ -98,7 +90,7 @@ export default {
   z-index: var(--z-index-modal);
 }
 
-.modal-dialog {
+.modal-content {
   background: var(--color-bg-overlay);
   border-radius: var(--border-radius-xl);
   overflow: hidden;
@@ -129,6 +121,7 @@ export default {
 .modal-icon {
   width: 20px;
   height: 20px;
+  font-size: 20px;
 }
 
 .modal-icon.text-danger {
@@ -161,7 +154,7 @@ export default {
   padding: var(--spacing-xl);
 }
 
-.delete-warning {
+.warning-content {
   display: flex;
   align-items: flex-start;
   gap: var(--spacing-lg);
@@ -186,36 +179,39 @@ export default {
   width: 20px;
   height: 20px;
   color: var(--color-danger-600);
+  font-size: 20px;
 }
 
-.warning-content {
+.warning-text {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
 }
 
-.warning-content h4 {
+.warning-text h4 {
   margin: 0;
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
 }
 
-.warning-content p {
+.warning-text p {
   margin: 0;
   font-size: var(--font-size-base);
   color: var(--color-text-secondary);
 }
 
-.warning-text {
+.warning-note {
   font-style: italic;
   color: var(--color-text-tertiary);
 }
 
-.form-actions {
+.modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: var(--spacing-md);
+  padding: var(--spacing-xl);
+  border-top: 1px solid var(--color-border-light);
 }
 
 .btn {
@@ -232,13 +228,13 @@ export default {
   font-size: var(--font-size-base);
 }
 
-.btn-outline {
+.btn-secondary {
   background: transparent;
   color: var(--color-text-primary);
   border: 1px solid var(--color-border-medium);
 }
 
-.btn-outline:hover {
+.btn-secondary:hover {
   background: var(--color-bg-tertiary);
   border-color: var(--color-primary-300);
 }
@@ -256,5 +252,6 @@ export default {
 .btn-icon {
   width: 18px;
   height: 18px;
+  font-size: 18px;
 }
 </style> 

@@ -2,12 +2,12 @@
   <div class="directory-table-container">
     <div class="table-header">
       <div class="table-title">
-        <i data-lucide="folder-tree" class="table-title-icon"></i>
+        <el-icon class="table-title-icon"><FolderOpened /></el-icon>
         <h3>目录列表</h3>
       </div>
       <div class="table-actions">
         <div class="search-box">
-          <i data-lucide="search" class="search-icon"></i>
+          <el-icon class="search-icon"><Search /></el-icon>
           <input 
             type="text" 
             placeholder="搜索目录..." 
@@ -28,12 +28,12 @@
       <!-- 错误状态 -->
       <div v-else-if="error" class="table-error">
         <div class="error-icon">
-          <i data-lucide="alert-circle" class="error-icon-svg"></i>
+          <el-icon class="error-icon-svg"><Warning /></el-icon>
         </div>
         <h3>加载失败</h3>
         <p>{{ error }}</p>
         <button class="btn btn-primary btn-sm" @click="$emit('reload')">
-          <i data-lucide="refresh-cw" class="btn-icon"></i>
+          <el-icon class="btn-icon"><Refresh /></el-icon>
           重新加载
         </button>
       </div>
@@ -56,7 +56,7 @@
             <tr v-for="directory in directories" :key="directory.id">
               <td>
                 <div class="directory-name">
-                  <i data-lucide="folder" class="directory-icon"></i>
+                  <el-icon class="directory-icon"><Folder /></el-icon>
                   <span>{{ directory.name }}</span>
                   <span v-if="directory.id === 1" class="directory-badge root">根目录</span>
                 </div>
@@ -91,7 +91,7 @@
                     @click="$emit('move', directory)"
                     :disabled="directory.id === 1"
                   >
-                    <i data-lucide="move"></i>
+                    <el-icon><Sort /></el-icon>
                   </button>
                   <button 
                     class="btn btn-icon btn-sm btn-secondary" 
@@ -99,7 +99,7 @@
                     @click="$emit('update', directory)"
                     :disabled="directory.id === 1"
                   >
-                    <i data-lucide="edit-2"></i>
+                    <el-icon><Edit /></el-icon>
                   </button>
                   <button 
                     class="btn btn-icon btn-sm btn-danger" 
@@ -107,7 +107,7 @@
                     @click="$emit('delete', directory)"
                     :disabled="directory.id === 1"
                   >
-                    <i data-lucide="trash-2"></i>
+                    <el-icon><Delete /></el-icon>
                   </button>
                 </div>
               </td>
@@ -131,7 +131,7 @@
       <!-- 空状态 -->
       <div v-else class="table-empty">
         <div class="empty-icon">
-          <i data-lucide="folder-x" class="empty-icon-svg"></i>
+          <el-icon class="empty-icon-svg"><FolderDelete /></el-icon>
         </div>
         <h3>暂无目录</h3>
         <p>系统中还没有创建任何目录</p>
@@ -143,11 +143,33 @@
 <script>
 import { onMounted, watch } from 'vue'
 import Pagination from '@/components/Pagination.vue'
+// 导入Element Plus图标
+import { 
+  FolderOpened, 
+  Search, 
+  Warning, 
+  Refresh, 
+  Folder, 
+  Sort, 
+  Edit, 
+  Delete, 
+  FolderDelete 
+} from '@element-plus/icons-vue'
 
 export default {
   name: 'DirectoryTable',
   components: {
-    Pagination
+    Pagination,
+    // 注册图标组件
+    FolderOpened,
+    Search,
+    Warning,
+    Refresh,
+    Folder,
+    Sort,
+    Edit,
+    Delete,
+    FolderDelete
   },
   props: {
     directories: {
@@ -198,19 +220,13 @@ export default {
       return parentInTree ? parentInTree.name : '未知目录'
     }
 
-    // 监听 directories 变化，初始化图标
+    // 监听 directories 变化，Element Plus图标会自动渲染
     watch(() => props.directories, () => {
-      if (window.lucide) {
-        setTimeout(() => {
-          window.lucide.createIcons()
-        }, 100)
-      }
+      // Element Plus 图标会自动渲染，无需手动初始化
     })
 
     onMounted(() => {
-      if (window.lucide) {
-        window.lucide.createIcons()
-      }
+      // Element Plus 图标会自动渲染，无需手动初始化
     })
 
     return {
@@ -249,6 +265,7 @@ export default {
   width: 20px;
   height: 20px;
   color: var(--color-primary-600);
+  font-size: 20px;
 }
 
 .table-title h3 {
@@ -297,6 +314,7 @@ export default {
   height: 18px;
   color: var(--color-text-tertiary);
   pointer-events: none;
+  font-size: 18px;
 }
 
 .table-content {
@@ -347,6 +365,7 @@ export default {
   width: 16px;
   height: 16px;
   color: var(--color-primary-500);
+  font-size: 16px;
 }
 
 .directory-badge {
@@ -456,9 +475,10 @@ export default {
   box-shadow: none !important;
 }
 
-.directory-actions .btn i {
+.directory-actions .btn .el-icon {
   width: 16px;
   height: 16px;
+  font-size: 16px;
 }
 
 .text-muted {
@@ -520,6 +540,7 @@ export default {
   width: 24px;
   height: 24px;
   color: var(--color-error-600);
+  font-size: 24px;
 }
 
 .table-error h3 {
@@ -560,6 +581,7 @@ export default {
   width: 24px;
   height: 24px;
   color: var(--color-text-tertiary);
+  font-size: 24px;
 }
 
 .table-empty h3 {
@@ -605,6 +627,7 @@ export default {
 .btn-icon {
   width: 18px;
   height: 18px;
+  font-size: 18px;
 }
 
 /* 分页样式 */

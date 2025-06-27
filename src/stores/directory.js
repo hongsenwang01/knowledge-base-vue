@@ -112,34 +112,41 @@ export const useDirectoryStore = defineStore('directory', () => {
     return null
   }
   
-  const createDirectory = async (parentId, name, description = '') => {
+  const createDirectory = async (directoryData) => {
     loading.value = true
     error.value = null
     
     try {
       // 准备创建数据
-      const directoryData = {
-        name,
-        parentId: parentId === null ? 0 : parentId,
-        description
+      const createData = {
+        name: directoryData.name,
+        parentId: directoryData.parentId,
+        description: directoryData.description || ''
       }
       
       // 调用真实API创建目录
-      const newDirectory = await directoryAPI.createDirectory(directoryData)
+      const newDirectory = await directoryAPI.createDirectory(createData)
       
       // 转换返回的数据格式
       const transformedDirectory = directoryDataTransform.transformDirectory(newDirectory)
       transformedDirectory.children = []
       
       // 更新本地目录树
-      const parent = findDirectoryById(parentId)
+      const parent = findDirectoryById(createData.parentId)
       if (parent) {
         if (!parent.children) {
           parent.children = []
         }
         parent.children.push(transformedDirectory)
         parent.folderCount = parent.children.length
+        parent.hasChildren = true
+      } else if (createData.parentId === 1) {
+        // 如果是根目录（ID为1），直接添加到树的根级别
+        directoryTree.value.push(transformedDirectory)
       }
+      
+      // 刷新分页数据以显示新创建的目录
+      await fetchDirectoriesPage(pagination.value.current, pagination.value.size)
       
       return transformedDirectory
     } catch (err) {
