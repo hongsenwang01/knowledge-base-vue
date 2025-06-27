@@ -57,7 +57,7 @@
               <i data-lucide="folder" class="stats-icon-svg"></i>
             </div>
             <div class="stats-content">
-              <div class="stats-number">--</div>
+              <div class="stats-number">{{ stats.totalFolders.toLocaleString() }}</div>
               <div class="stats-label">总文件夹</div>
             </div>
           </div>
@@ -66,7 +66,7 @@
               <i data-lucide="file-text" class="stats-icon-svg"></i>
             </div>
             <div class="stats-content">
-              <div class="stats-number">--</div>
+              <div class="stats-number">{{ stats.totalFiles.toLocaleString() }}</div>
               <div class="stats-label">总文件</div>
             </div>
           </div>
@@ -75,7 +75,7 @@
               <i data-lucide="hard-drive" class="stats-icon-svg"></i>
             </div>
             <div class="stats-content">
-              <div class="stats-number">--</div>
+              <div class="stats-number">{{ stats.totalSize }}</div>
               <div class="stats-label">总大小</div>
             </div>
           </div>
@@ -84,7 +84,7 @@
               <i data-lucide="clock" class="stats-icon-svg"></i>
             </div>
             <div class="stats-content">
-              <div class="stats-number">--</div>
+              <div class="stats-number">{{ formatDate(stats.lastModified) }}</div>
               <div class="stats-label">最近修改</div>
             </div>
           </div>
@@ -194,11 +194,14 @@
 </template>
 
 <script>
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
+import { systemStats } from '@/data'
 
 export default {
   name: 'DirectoryManagement',
   setup() {
+    const stats = ref(systemStats)
+
     onMounted(() => {
       // 初始化 Lucide 图标
       if (window.lucide) {
@@ -206,7 +209,19 @@ export default {
       }
     })
 
-    return {}
+    const formatDate = (dateString) => {
+      if (!dateString) return '--'
+      const date = new Date(dateString)
+      return date.toLocaleDateString('zh-CN', {
+        month: 'numeric',
+        day: 'numeric'
+      })
+    }
+
+    return {
+      stats,
+      formatDate
+    }
   }
 }
 </script>

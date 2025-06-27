@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { directoryTree as mockDirectoryTree, mockAPI } from '@/data'
 
 export const useDirectoryStore = defineStore('directory', () => {
   // 状态
@@ -19,91 +20,19 @@ export const useDirectoryStore = defineStore('directory', () => {
     return currentDirectory.value.name || '根目录'
   })
   
-  // 模拟数据
-  const mockDirectoryTree = [
-    {
-      id: 'root',
-      name: '根目录',
-      parentId: null,
-      path: '/',
-      level: 0,
-      childCount: 3,
-      fileCount: 0,
-      createTime: '2024-01-01T00:00:00Z',
-      children: [
-        {
-          id: 'documents',
-          name: '文档',
-          parentId: 'root',
-          path: '/文档',
-          level: 1,
-          childCount: 2,
-          fileCount: 5,
-          createTime: '2024-01-01T00:00:00Z',
-          children: [
-            {
-              id: 'work',
-              name: '工作文档',
-              parentId: 'documents',
-              path: '/文档/工作文档',
-              level: 2,
-              childCount: 0,
-              fileCount: 3,
-              createTime: '2024-01-01T00:00:00Z',
-              children: []
-            },
-            {
-              id: 'personal',
-              name: '个人文档',
-              parentId: 'documents',
-              path: '/文档/个人文档',
-              level: 2,
-              childCount: 0,
-              fileCount: 2,
-              createTime: '2024-01-01T00:00:00Z',
-              children: []
-            }
-          ]
-        },
-        {
-          id: 'images',
-          name: '图片',
-          parentId: 'root',
-          path: '/图片',
-          level: 1,
-          childCount: 0,
-          fileCount: 8,
-          createTime: '2024-01-01T00:00:00Z',
-          children: []
-        },
-        {
-          id: 'videos',
-          name: '视频',
-          parentId: 'root',
-          path: '/视频',
-          level: 1,
-          childCount: 0,
-          fileCount: 3,
-          createTime: '2024-01-01T00:00:00Z',
-          children: []
-        }
-      ]
-    }
-  ]
-  
   // 方法
   const fetchDirectoryTree = async () => {
     loading.value = true
     error.value = null
     
     try {
-      // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 500))
-      directoryTree.value = mockDirectoryTree
+      // 使用模拟API获取目录树
+      const tree = await mockAPI.getDirectoryTree()
+      directoryTree.value = [tree] // 包装为数组格式以兼容现有代码
       
       // 设置默认当前目录为根目录
       if (!currentDirectory.value) {
-        currentDirectory.value = mockDirectoryTree[0]
+        currentDirectory.value = tree
       }
     } catch (err) {
       error.value = err.message || '获取目录树失败'
@@ -134,29 +63,21 @@ export const useDirectoryStore = defineStore('directory', () => {
     error.value = null
     
     try {
-      // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 300))
+      // 使用模拟API创建目录
+      const newDirectory = await mockAPI.createDirectory(name, parentId)
       
+      // 更新本地目录树
       const parent = findDirectoryById(parentId)
-      if (!parent) {
-        throw new Error('父目录不存在')
+      if (parent) {
+        if (!parent.children) {
+          parent.children = []
+        }
+        parent.children.push({
+          ...newDirectory,
+          children: []
+        })
+        parent.folderCount = parent.children.length
       }
-      
-      const newDirectory = {
-        id: `dir_${Date.now()}`,
-        name,
-        parentId,
-        path: `${parent.path}/${name}`.replace('//', '/'),
-        level: parent.level + 1,
-        childCount: 0,
-        fileCount: 0,
-        createTime: new Date().toISOString(),
-        description,
-        children: []
-      }
-      
-      parent.children.push(newDirectory)
-      parent.childCount = parent.children.length
       
       return newDirectory
     } catch (err) {

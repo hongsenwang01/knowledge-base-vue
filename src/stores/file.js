@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { mockAPI } from '@/data'
 
 export const useFileStore = defineStore('file', () => {
   // 状态
@@ -114,18 +115,9 @@ export const useFileStore = defineStore('file', () => {
     error.value = null
     
     try {
-      // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 300))
-      
-      // 根据目录生成不同数量的文件
-      let fileCount = 5
-      if (directoryId === 'documents') fileCount = 8
-      else if (directoryId === 'images') fileCount = 12
-      else if (directoryId === 'videos') fileCount = 6
-      else if (directoryId === 'work') fileCount = 15
-      else if (directoryId === 'personal') fileCount = 7
-      
-      files.value = generateMockFiles(directoryId, fileCount)
+      // 使用模拟API获取文件列表
+      const fileList = await mockAPI.getFilesByDirectory(directoryId)
+      files.value = fileList
       selectedFiles.value = []
     } catch (err) {
       error.value = err.message || '获取文件列表失败'
@@ -139,22 +131,18 @@ export const useFileStore = defineStore('file', () => {
     error.value = null
     
     try {
-      // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 400))
+      // 使用模拟API搜索文件
+      let searchResults = await mockAPI.searchFiles(keyword)
       
-      // 生成更多模拟数据用于搜索
-      const allFiles = generateMockFiles('search', 50)
+      // 应用额外的过滤条件
+      if (directoryId) {
+        searchResults = searchResults.filter(file => file.directoryId === directoryId)
+      }
+      if (fileType) {
+        searchResults = searchResults.filter(file => file.extension === fileType)
+      }
       
-      // 模拟搜索过滤
-      const filteredFiles = allFiles.filter(file => {
-        const matchesKeyword = file.name.toLowerCase().includes(keyword.toLowerCase())
-        const matchesType = !fileType || file.extension === fileType
-        const matchesDirectory = !directoryId || file.directoryId === directoryId
-        
-        return matchesKeyword && matchesType && matchesDirectory
-      })
-      
-      files.value = filteredFiles.slice(0, 20) // 限制搜索结果数量
+      files.value = searchResults.slice(0, 20) // 限制搜索结果数量
       selectedFiles.value = []
     } catch (err) {
       error.value = err.message || '搜索文件失败'

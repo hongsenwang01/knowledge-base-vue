@@ -96,7 +96,7 @@
               <i data-lucide="zap" class="stat-icon-svg"></i>
             </div>
             <div class="stat-content">
-              <div class="stat-number">99.9%</div>
+              <div class="stat-number">{{ stats.systemUptime }}</div>
               <div class="stat-label">系统可用性</div>
             </div>
           </div>
@@ -106,7 +106,7 @@
               <i data-lucide="shield-check" class="stat-icon-svg"></i>
             </div>
             <div class="stat-content">
-              <div class="stat-number">256位</div>
+              <div class="stat-number">{{ stats.encryption }}</div>
               <div class="stat-label">安全加密</div>
             </div>
           </div>
@@ -116,7 +116,7 @@
               <i data-lucide="clock" class="stat-icon-svg"></i>
             </div>
             <div class="stat-content">
-              <div class="stat-number">24/7</div>
+              <div class="stat-number">{{ stats.serviceTime }}</div>
               <div class="stat-label">全天候服务</div>
             </div>
           </div>
@@ -126,7 +126,7 @@
               <i data-lucide="users" class="stat-icon-svg"></i>
             </div>
             <div class="stat-content">
-              <div class="stat-number">10K+</div>
+              <div class="stat-number">{{ stats.trustedUsers }}</div>
               <div class="stat-label">用户信赖</div>
             </div>
           </div>
@@ -137,11 +137,14 @@
 </template>
 
 <script>
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
+import { systemStats } from '@/data'
 
 export default {
   name: 'Home',
   setup() {
+    const stats = ref(systemStats)
+
     onMounted(() => {
       // 初始化 Lucide 图标
       if (window.lucide) {
@@ -149,7 +152,9 @@ export default {
       }
     })
 
-    return {}
+    return {
+      stats
+    }
   }
 }
 </script>
