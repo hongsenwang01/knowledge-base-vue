@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { directoryTree as mockDirectoryTree, mockAPI } from '@/data'
+import { directoryAPI, directoryDataTransform } from '@/api/directory.js'
 
 export const useDirectoryStore = defineStore('directory', () => {
   // 状态
@@ -8,6 +8,15 @@ export const useDirectoryStore = defineStore('directory', () => {
   const currentDirectory = ref(null)
   const loading = ref(false)
   const error = ref(null)
+  
+  // 分页相关状态
+  const pageDirectories = ref([]) // 分页的目录列表
+  const pagination = ref({
+    current: 1,
+    size: 10,
+    total: 0,
+    pages: 0
+  })
   
   // 计算属性
   const currentDirectoryPath = computed(() => {
@@ -26,19 +35,64 @@ export const useDirectoryStore = defineStore('directory', () => {
     error.value = null
     
     try {
-      // 使用模拟API获取目录树
-      const tree = await mockAPI.getDirectoryTree()
-      directoryTree.value = [tree] // 包装为数组格式以兼容现有代码
+      // 调用真实API获取目录列表
+      const directories = await directoryAPI.getDirectories()
       
-      // 设置默认当前目录为根目录
-      if (!currentDirectory.value) {
-        currentDirectory.value = tree
+      // 将扁平的目录列表转换为树形结构
+      const tree = directoryDataTransform.transformToTree(directories)
+      directoryTree.value = tree
+      
+      // 设置默认当前目录为根目录（第一个根目录）
+      if (!currentDirectory.value && tree.length > 0) {
+        currentDirectory.value = tree[0]
       }
     } catch (err) {
       error.value = err.message || '获取目录树失败'
+      console.error('获取目录树失败:', err)
     } finally {
       loading.value = false
     }
+  }
+
+  // 分页获取目录列表
+  const fetchDirectoriesPage = async (current = 1, size = 10) => {
+    loading.value = true
+    error.value = null
+    
+    try {
+      const response = await directoryAPI.getDirectoriesPage({ current, size })
+      
+      // 更新分页数据
+      pagination.value = {
+        current: response.current,
+        size: response.size,
+        total: response.total,
+        pages: response.pages
+      }
+      
+      // 转换目录数据格式
+      pageDirectories.value = response.records.map(dir => 
+        directoryDataTransform.transformDirectory(dir)
+      )
+      
+    } catch (err) {
+      error.value = err.message || '获取目录列表失败'
+      console.error('获取目录列表失败:', err)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 切换页码
+  const changePage = async (page) => {
+    if (page === pagination.value.current) return
+    await fetchDirectoriesPage(page, pagination.value.size)
+  }
+
+  // 切换每页数量
+  const changePageSize = async (size) => {
+    if (size === pagination.value.size) return
+    await fetchDirectoriesPage(1, size)
   }
   
   const setCurrentDirectory = (directory) => {
@@ -63,8 +117,19 @@ export const useDirectoryStore = defineStore('directory', () => {
     error.value = null
     
     try {
-      // 使用模拟API创建目录
-      const newDirectory = await mockAPI.createDirectory(name, parentId)
+      // 准备创建数据
+      const directoryData = {
+        name,
+        parentId: parentId === null ? 0 : parentId,
+        description
+      }
+      
+      // 调用真实API创建目录
+      const newDirectory = await directoryAPI.createDirectory(directoryData)
+      
+      // 转换返回的数据格式
+      const transformedDirectory = directoryDataTransform.transformDirectory(newDirectory)
+      transformedDirectory.children = []
       
       // 更新本地目录树
       const parent = findDirectoryById(parentId)
@@ -72,16 +137,14 @@ export const useDirectoryStore = defineStore('directory', () => {
         if (!parent.children) {
           parent.children = []
         }
-        parent.children.push({
-          ...newDirectory,
-          children: []
-        })
+        parent.children.push(transformedDirectory)
         parent.folderCount = parent.children.length
       }
       
-      return newDirectory
+      return transformedDirectory
     } catch (err) {
       error.value = err.message || '创建目录失败'
+      console.error('创建目录失败:', err)
       throw err
     } finally {
       loading.value = false
@@ -93,33 +156,41 @@ export const useDirectoryStore = defineStore('directory', () => {
     error.value = null
     
     try {
-      // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 300))
+      // 调用真实API更新目录
+      const updatedDirectory = await directoryAPI.updateDirectory(id, updates)
       
+      // 转换返回的数据格式
+      const transformedDirectory = directoryDataTransform.transformDirectory(updatedDirectory)
+      
+      // 更新本地目录树
       const directory = findDirectoryById(id)
       if (!directory) {
         throw new Error('目录不存在')
       }
       
-      Object.assign(directory, updates)
+      // 保持children数据
+      transformedDirectory.children = directory.children
+      Object.assign(directory, transformedDirectory)
       
       return directory
     } catch (err) {
       error.value = err.message || '更新目录失败'
+      console.error('更新目录失败:', err)
       throw err
     } finally {
       loading.value = false
     }
   }
   
-  const deleteDirectory = async (id) => {
+  const deleteDirectory = async (id, force = false) => {
     loading.value = true
     error.value = null
     
     try {
-      // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 300))
+      // 调用真实API删除目录
+      await directoryAPI.deleteDirectory(id, force)
       
+      // 从本地目录树中移除
       const removeFromTree = (tree, targetId) => {
         for (let i = 0; i < tree.length; i++) {
           if (tree[i].id === targetId) {
@@ -127,7 +198,7 @@ export const useDirectoryStore = defineStore('directory', () => {
             return true
           }
           if (tree[i].children && removeFromTree(tree[i].children, targetId)) {
-            tree[i].childCount = tree[i].children.length
+            tree[i].folderCount = tree[i].children.length
             return true
           }
         }
@@ -147,6 +218,7 @@ export const useDirectoryStore = defineStore('directory', () => {
       return true
     } catch (err) {
       error.value = err.message || '删除目录失败'
+      console.error('删除目录失败:', err)
       throw err
     } finally {
       loading.value = false
@@ -164,12 +236,19 @@ export const useDirectoryStore = defineStore('directory', () => {
     loading,
     error,
     
+    // 分页相关状态
+    pageDirectories,
+    pagination,
+    
     // 计算属性
     currentDirectoryPath,
     currentDirectoryName,
     
     // 方法
     fetchDirectoryTree,
+    fetchDirectoriesPage,
+    changePage,
+    changePageSize,
     setCurrentDirectory,
     findDirectoryById,
     createDirectory,
