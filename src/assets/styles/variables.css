@@ -1,75 +1,130 @@
-/* CSS变量定义 - 设计系统 */
+/* CSS变量定义 - 苹果风格设计系统 */
 :root {
-  /* 颜色系统 */
-  --primary-color: #409eff;
-  --primary-light: #79bbff;
-  --primary-dark: #337ecc;
-  
-  --success-color: #67c23a;
-  --warning-color: #e6a23c;
-  --danger-color: #f56c6c;
-  --info-color: #909399;
-  
-  /* 中性色 */
-  --text-primary: #303133;
-  --text-regular: #606266;
-  --text-secondary: #909399;
-  --text-placeholder: #c0c4cc;
-  
-  --border-color: #dcdfe6;
-  --border-light: #e4e7ed;
-  --border-lighter: #ebeef5;
-  --border-extra-light: #f2f6fc;
-  
-  --background-color: #ffffff;
-  --background-light: #fafafa;
-  --background-dark: #f5f7fa;
-  
+  /* 主色彩系统 - 苹果蓝 */
+  --color-primary-50: #f0f9ff;
+  --color-primary-100: #e0f2fe;
+  --color-primary-200: #bae6fd;
+  --color-primary-300: #7dd3fc;
+  --color-primary-400: #38bdf8;
+  --color-primary-500: #0ea5e9;
+  --color-primary-600: #0284c7;
+  --color-primary-700: #0369a1;
+  --color-primary-800: #075985;
+  --color-primary-900: #0c4a6e;
+
+  /* 中性色系统 */
+  --color-gray-50: #f8fafc;
+  --color-gray-100: #f1f5f9;
+  --color-gray-200: #e2e8f0;
+  --color-gray-300: #cbd5e1;
+  --color-gray-400: #94a3b8;
+  --color-gray-500: #64748b;
+  --color-gray-600: #475569;
+  --color-gray-700: #334155;
+  --color-gray-800: #1e293b;
+  --color-gray-900: #0f172a;
+
+  /* 语义色彩 */
+  --color-success-50: #f0fdf4;
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
+  --color-warning-50: #fffbeb;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+  --color-danger-50: #fef2f2;
+  --color-danger-500: #ef4444;
+  --color-danger-600: #dc2626;
+
+  /* 背景色彩 */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: rgba(255, 255, 255, 0.8);
+  --color-bg-tertiary: #f8fafc;
+  --color-bg-quaternary: #f1f5f9;
+  --color-bg-overlay: rgba(255, 255, 255, 0.95);
+  --color-bg-modal: rgba(0, 0, 0, 0.4);
+
+  /* 文字色彩 */
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #64748b;
+  --color-text-quaternary: #94a3b8;
+  --color-text-inverse: #ffffff;
+
+  /* 边框色彩 */
+  --color-border-light: #f1f5f9;
+  --color-border-medium: #e2e8f0;
+  --color-border-dark: #cbd5e1;
+
   /* 间距系统 */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
   --spacing-lg: 24px;
   --spacing-xl: 32px;
-  --spacing-xxl: 48px;
-  
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+
   /* 字体系统 */
+  --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  --font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+
   --font-size-xs: 12px;
   --font-size-sm: 14px;
-  --font-size-md: 16px;
+  --font-size-base: 16px;
   --font-size-lg: 18px;
   --font-size-xl: 20px;
-  --font-size-xxl: 24px;
-  
+  --font-size-2xl: 24px;
+  --font-size-3xl: 32px;
+  --font-size-4xl: 36px;
+  --font-size-5xl: 48px;
+
+  --font-weight-light: 300;
   --font-weight-normal: 400;
   --font-weight-medium: 500;
-  --font-weight-bold: 600;
-  
-  --line-height-base: 1.5;
-  --line-height-small: 1.25;
-  --line-height-large: 1.75;
-  
-  /* 阴影系统 */
-  --shadow-small: 0 2px 4px rgba(0, 0, 0, 0.08);
-  --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.12);
-  --shadow-large: 0 8px 24px rgba(0, 0, 0, 0.16);
-  
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+
+  /* 阴影系统 - 苹果风格 */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
   /* 圆角系统 */
-  --radius-small: 4px;
-  --radius-medium: 6px;
-  --radius-large: 8px;
-  --radius-round: 50%;
-  
+  --border-radius-none: 0;
+  --border-radius-sm: 6px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+  --border-radius-2xl: 20px;
+  --border-radius-full: 9999px;
+
   /* 动画系统 */
-  --transition-fast: 0.15s ease;
-  --transition-base: 0.3s ease;
-  --transition-slow: 0.5s ease;
-  
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slower: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* 毛玻璃效果 */
+  --backdrop-blur-sm: blur(4px);
+  --backdrop-blur-md: blur(8px);
+  --backdrop-blur-lg: blur(16px);
+  --backdrop-blur-xl: blur(24px);
+
   /* 布局系统 */
-  --header-height: 60px;
-  --sidebar-width: 260px;
-  --sidebar-collapsed-width: 64px;
-  
+  --header-height: 64px;
+  --sidebar-width: 280px;
+  --sidebar-collapsed-width: 72px;
+  --container-max-width: 1400px;
+
   /* Z-index层级 */
   --z-index-dropdown: 1000;
   --z-index-sticky: 1020;
@@ -80,21 +135,35 @@
   --z-index-tooltip: 1070;
 }
 
-/* 深色模式支持（预留） */
+/* 深色模式 */
 @media (prefers-color-scheme: dark) {
   :root {
-    --text-primary: #e5eaf3;
-    --text-regular: #cfd3dc;
-    --text-secondary: #a3a6ad;
-    --text-placeholder: #6c6e72;
-    
-    --border-color: #4c4d4f;
-    --border-light: #414243;
-    --border-lighter: #363637;
-    --border-extra-light: #2b2b2c;
-    
-    --background-color: #1d1e1f;
-    --background-light: #25262b;
-    --background-dark: #2c2e33;
+    /* 背景色彩 - 深色模式 */
+    --color-bg-primary: #000000;
+    --color-bg-secondary: rgba(0, 0, 0, 0.8);
+    --color-bg-tertiary: #1a1a1a;
+    --color-bg-quaternary: #2a2a2a;
+    --color-bg-overlay: rgba(0, 0, 0, 0.95);
+
+    /* 文字色彩 - 深色模式 */
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #a1a1aa;
+    --color-text-tertiary: #71717a;
+    --color-text-quaternary: #52525b;
+
+    /* 边框色彩 - 深色模式 */
+    --color-border-light: #2a2a2a;
+    --color-border-medium: #3f3f46;
+    --color-border-dark: #52525b;
+  }
+}
+
+/* 减少动画的用户偏好 */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0ms;
+    --transition-normal: 0ms;
+    --transition-slow: 0ms;
+    --transition-slower: 0ms;
   }
 } 

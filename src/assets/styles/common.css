@@ -9,16 +9,19 @@
 
 html {
   font-size: 14px;
-  line-height: var(--line-height-base);
+  line-height: var(--line-height-normal);
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  font-size: var(--font-size-md);
-  color: var(--text-primary);
-  background-color: var(--background-color);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
 /* 链接样式 */
@@ -68,18 +71,18 @@ img {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--background-light);
-  border-radius: var(--radius-small);
+  background: var(--color-bg-tertiary);
+  border-radius: var(--border-radius-sm);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: var(--radius-small);
+  background: var(--color-border-medium);
+  border-radius: var(--border-radius-sm);
   transition: background var(--transition-fast);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
+  background: var(--color-border-dark);
 }
 
 /* 通用工具类 */

@@ -4,16 +4,21 @@
       <!-- 页面头部 -->
       <header class="page-header">
         <div class="header-content">
-          <h1 class="page-title">目录管理</h1>
-          <p class="page-subtitle">管理文件夹结构和权限</p>
+          <div class="header-icon">
+            <i data-lucide="folder-cog" class="header-icon-svg"></i>
+          </div>
+          <div class="header-text">
+            <h1 class="page-title">目录管理</h1>
+            <p class="page-subtitle">管理文件夹结构和权限</p>
+          </div>
         </div>
         <div class="header-actions">
           <router-link to="/files" class="btn btn-secondary">
-            <span class="btn-icon">🗂️</span>
+            <i data-lucide="folder-open" class="btn-icon"></i>
             文件管理
           </router-link>
           <router-link to="/" class="btn btn-secondary">
-            <span class="btn-icon">🏠</span>
+            <i data-lucide="home" class="btn-icon"></i>
             返回首页
           </router-link>
         </div>
@@ -23,21 +28,21 @@
       <div class="toolbar">
         <div class="toolbar-left">
           <button class="btn btn-primary" disabled>
-            <span class="btn-icon">➕</span>
+            <i data-lucide="folder-plus" class="btn-icon"></i>
             新建文件夹
           </button>
           <button class="btn btn-outline" disabled>
-            <span class="btn-icon">📝</span>
+            <i data-lucide="edit-3" class="btn-icon"></i>
             批量操作
           </button>
         </div>
         <div class="toolbar-right">
           <div class="view-switcher">
             <button class="btn btn-icon active" title="列表视图">
-              <span>📋</span>
+              <i data-lucide="list" class="view-icon"></i>
             </button>
             <button class="btn btn-icon" title="树形视图">
-              <span>🌳</span>
+              <i data-lucide="git-branch" class="view-icon"></i>
             </button>
           </div>
         </div>
@@ -48,28 +53,36 @@
         <!-- 目录统计卡片 -->
         <div class="stats-grid">
           <div class="stats-card">
-            <div class="stats-icon">📁</div>
+            <div class="stats-icon">
+              <i data-lucide="folder" class="stats-icon-svg"></i>
+            </div>
             <div class="stats-content">
               <div class="stats-number">--</div>
               <div class="stats-label">总文件夹</div>
             </div>
           </div>
           <div class="stats-card">
-            <div class="stats-icon">📄</div>
+            <div class="stats-icon">
+              <i data-lucide="file-text" class="stats-icon-svg"></i>
+            </div>
             <div class="stats-content">
               <div class="stats-number">--</div>
               <div class="stats-label">总文件</div>
             </div>
           </div>
           <div class="stats-card">
-            <div class="stats-icon">💾</div>
+            <div class="stats-icon">
+              <i data-lucide="hard-drive" class="stats-icon-svg"></i>
+            </div>
             <div class="stats-content">
               <div class="stats-number">--</div>
               <div class="stats-label">总大小</div>
             </div>
           </div>
           <div class="stats-card">
-            <div class="stats-icon">🕒</div>
+            <div class="stats-icon">
+              <i data-lucide="clock" class="stats-icon-svg"></i>
+            </div>
             <div class="stats-content">
               <div class="stats-number">--</div>
               <div class="stats-label">最近修改</div>
@@ -80,46 +93,96 @@
         <!-- 目录管理表格 -->
         <div class="directory-table-container">
           <div class="table-header">
-            <h3>目录列表</h3>
+            <div class="table-title">
+              <i data-lucide="folder-tree" class="table-title-icon"></i>
+              <h3>目录列表</h3>
+            </div>
             <div class="table-actions">
               <div class="search-box">
+                <i data-lucide="search" class="search-icon"></i>
                 <input 
                   type="text" 
                   placeholder="搜索目录..." 
                   class="search-input"
                   disabled
                 >
-                <span class="search-icon">🔍</span>
               </div>
             </div>
           </div>
           
           <div class="table-content">
             <div class="table-placeholder">
-              <div class="placeholder-icon">🗂️</div>
+              <div class="placeholder-icon">
+                <i data-lucide="folder-cog" class="placeholder-icon-svg"></i>
+              </div>
               <h3>目录管理功能开发中</h3>
               <p>这里将显示完整的目录管理功能</p>
               <div class="placeholder-features">
                 <div class="feature-group">
-                  <h4>🏗️ 基础功能</h4>
-                  <div class="feature-item">✓ 目录创建与删除</div>
-                  <div class="feature-item">✓ 目录重命名</div>
-                  <div class="feature-item">✓ 目录移动</div>
-                  <div class="feature-item">✓ 目录复制</div>
+                  <h4>
+                    <i data-lucide="tool" class="feature-group-icon"></i>
+                    基础功能
+                  </h4>
+                  <div class="feature-item">
+                    <i data-lucide="check-circle" class="feature-check"></i>
+                    目录创建与删除
+                  </div>
+                  <div class="feature-item">
+                    <i data-lucide="check-circle" class="feature-check"></i>
+                    目录重命名
+                  </div>
+                  <div class="feature-item">
+                    <i data-lucide="check-circle" class="feature-check"></i>
+                    目录移动
+                  </div>
+                  <div class="feature-item">
+                    <i data-lucide="check-circle" class="feature-check"></i>
+                    目录复制
+                  </div>
                 </div>
                 <div class="feature-group">
-                  <h4>📊 管理功能</h4>
-                  <div class="feature-item">✓ 权限管理</div>
-                  <div class="feature-item">✓ 批量操作</div>
-                  <div class="feature-item">✓ 目录统计</div>
-                  <div class="feature-item">✓ 历史记录</div>
+                  <h4>
+                    <i data-lucide="bar-chart" class="feature-group-icon"></i>
+                    管理功能
+                  </h4>
+                  <div class="feature-item">
+                    <i data-lucide="check-circle" class="feature-check"></i>
+                    权限管理
+                  </div>
+                  <div class="feature-item">
+                    <i data-lucide="check-circle" class="feature-check"></i>
+                    批量操作
+                  </div>
+                  <div class="feature-item">
+                    <i data-lucide="check-circle" class="feature-check"></i>
+                    目录统计
+                  </div>
+                  <div class="feature-item">
+                    <i data-lucide="check-circle" class="feature-check"></i>
+                    历史记录
+                  </div>
                 </div>
                 <div class="feature-group">
-                  <h4>🎨 界面特色</h4>
-                  <div class="feature-item">✓ 树形视图</div>
-                  <div class="feature-item">✓ 列表视图</div>
-                  <div class="feature-item">✓ 拖拽操作</div>
-                  <div class="feature-item">✓ 右键菜单</div>
+                  <h4>
+                    <i data-lucide="palette" class="feature-group-icon"></i>
+                    界面特色
+                  </h4>
+                  <div class="feature-item">
+                    <i data-lucide="check-circle" class="feature-check"></i>
+                    树形视图
+                  </div>
+                  <div class="feature-item">
+                    <i data-lucide="check-circle" class="feature-check"></i>
+                    列表视图
+                  </div>
+                  <div class="feature-item">
+                    <i data-lucide="check-circle" class="feature-check"></i>
+                    拖拽操作
+                  </div>
+                  <div class="feature-item">
+                    <i data-lucide="check-circle" class="feature-check"></i>
+                    右键菜单
+                  </div>
                 </div>
               </div>
             </div>
@@ -131,9 +194,18 @@
 </template>
 
 <script>
+import { onMounted } from 'vue'
+
 export default {
   name: 'DirectoryManagement',
   setup() {
+    onMounted(() => {
+      // 初始化 Lucide 图标
+      if (window.lucide) {
+        window.lucide.createIcons()
+      }
+    })
+
     return {}
   }
 }
@@ -146,9 +218,9 @@ export default {
 }
 
 .directory-management-container {
-  max-width: 1400px;
+  max-width: var(--container-max-width);
   margin: 0 auto;
-  padding: var(--spacing-md);
+  padding: var(--spacing-lg);
 }
 
 /* 页面头部 */
@@ -156,23 +228,48 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-lg);
-  padding: var(--spacing-lg);
-  background: var(--color-bg-secondary);
-  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-xl);
+  background: var(--color-bg-overlay);
   border: 1px solid var(--color-border-light);
+  border-radius: var(--border-radius-xl);
+  backdrop-filter: var(--backdrop-blur-lg);
 }
 
-.header-content h1 {
-  font-size: 1.75rem;
-  font-weight: 600;
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.header-icon {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
+  border-radius: var(--border-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+}
+
+.header-icon-svg {
+  width: 32px;
+  height: 32px;
+  color: var(--color-text-inverse);
+}
+
+.header-text h1 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
   margin-bottom: var(--spacing-xs);
 }
 
-.header-content p {
+.header-text p {
   color: var(--color-text-secondary);
   margin: 0;
+  font-size: var(--font-size-base);
 }
 
 .header-actions {
@@ -183,11 +280,11 @@ export default {
 .header-actions .btn {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--border-radius-sm);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--border-radius-lg);
   text-decoration: none;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   transition: all var(--transition-normal);
   border: none;
   cursor: pointer;
@@ -198,52 +295,65 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-lg);
-  padding: var(--spacing-md);
-  background: var(--color-bg-secondary);
-  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background: var(--color-bg-overlay);
   border: 1px solid var(--color-border-light);
+  border-radius: var(--border-radius-xl);
+  backdrop-filter: var(--backdrop-blur-lg);
 }
 
 .toolbar-left {
   display: flex;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
 }
 
 .toolbar-right {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
 }
 
 .view-switcher {
   display: flex;
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--border-radius-lg);
   overflow: hidden;
+  background: var(--color-bg-primary);
 }
 
 .view-switcher .btn {
   border: none;
   border-radius: 0;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background: var(--color-bg-primary);
-  color: var(--color-text-secondary);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: transparent;
+  color: var(--color-text-tertiary);
+  transition: all var(--transition-fast);
 }
 
 .view-switcher .btn.active {
   background: var(--color-primary-500);
-  color: white;
+  color: var(--color-text-inverse);
+}
+
+.view-switcher .btn:hover:not(.active) {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+}
+
+.view-icon {
+  width: 16px;
+  height: 16px;
 }
 
 /* 按钮样式 */
 .btn {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--border-radius-sm);
-  font-weight: 500;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--border-radius-lg);
+  font-weight: var(--font-weight-medium);
   transition: all var(--transition-normal);
   border: none;
   cursor: pointer;
@@ -251,42 +361,37 @@ export default {
 }
 
 .btn-primary {
-  background: var(--color-primary-500);
-  color: white;
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
+  color: var(--color-text-inverse);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--color-primary-600);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
 .btn-outline {
   background: transparent;
   color: var(--color-text-primary);
-  border: 1px solid var(--color-border-light);
+  border: 1px solid var(--color-border-medium);
 }
 
 .btn-outline:hover:not(:disabled) {
   background: var(--color-bg-tertiary);
-  border-color: var(--color-primary-200);
+  border-color: var(--color-primary-300);
 }
 
 .btn-secondary {
   background: var(--color-bg-tertiary);
   color: var(--color-text-primary);
-  border: 1px solid var(--color-border-light);
+  border: 1px solid var(--color-border-medium);
 }
 
 .btn-secondary:hover {
   background: var(--color-bg-quaternary);
-  border-color: var(--color-primary-200);
-}
-
-.btn-icon {
-  background: transparent;
-  border: none;
-  padding: var(--spacing-xs);
-  color: var(--color-text-secondary);
-  cursor: pointer;
+  border-color: var(--color-primary-300);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn:disabled {
@@ -297,31 +402,56 @@ export default {
 /* 统计卡片 */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-lg);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
 }
 
 .stats-card {
-  background: var(--color-bg-secondary);
+  background: var(--color-bg-overlay);
   border: 1px solid var(--color-border-light);
-  border-radius: var(--border-radius-md);
-  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-xl);
+  padding: var(--spacing-xl);
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: var(--spacing-lg);
   transition: all var(--transition-normal);
+  backdrop-filter: var(--backdrop-blur-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.stats-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-primary-200), transparent);
 }
 
 .stats-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
   border-color: var(--color-primary-200);
 }
 
 .stats-icon {
-  font-size: 2rem;
-  opacity: 0.8;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, var(--color-primary-100), var(--color-primary-200));
+  border-radius: var(--border-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stats-icon-svg {
+  width: 28px;
+  height: 28px;
+  color: var(--color-primary-600);
 }
 
 .stats-content {
@@ -329,42 +459,57 @@ export default {
 }
 
 .stats-number {
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
   margin-bottom: var(--spacing-xs);
 }
 
 .stats-label {
   color: var(--color-text-secondary);
-  font-size: 0.9rem;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
 }
 
 /* 目录表格 */
 .directory-table-container {
-  background: var(--color-bg-secondary);
+  background: var(--color-bg-overlay);
   border: 1px solid var(--color-border-light);
-  border-radius: var(--border-radius-md);
+  border-radius: var(--border-radius-xl);
   overflow: hidden;
+  backdrop-filter: var(--backdrop-blur-lg);
 }
 
 .table-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-lg);
+  padding: var(--spacing-xl);
   border-bottom: 1px solid var(--color-border-light);
   background: var(--color-bg-tertiary);
 }
 
-.table-header h3 {
+.table-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.table-title-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--color-primary-600);
+}
+
+.table-title h3 {
   margin: 0;
   color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
 }
 
 .table-actions {
   display: flex;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
 }
 
 .search-box {
@@ -374,20 +519,20 @@ export default {
 }
 
 .search-input {
-  padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-md) var(--spacing-lg) var(--spacing-md) var(--spacing-2xl);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--border-radius-lg);
   background: var(--color-bg-primary);
   color: var(--color-text-primary);
-  font-size: 0.9rem;
-  width: 250px;
+  font-size: var(--font-size-base);
+  width: 280px;
   transition: all var(--transition-normal);
 }
 
 .search-input:focus {
   outline: none;
-  border-color: var(--color-primary-300);
-  box-shadow: 0 0 0 3px var(--color-primary-50);
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px var(--color-primary-100);
 }
 
 .search-input:disabled {
@@ -397,13 +542,15 @@ export default {
 
 .search-icon {
   position: absolute;
-  right: var(--spacing-sm);
-  color: var(--color-text-secondary);
+  left: var(--spacing-md);
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-tertiary);
   pointer-events: none;
 }
 
 .table-content {
-  padding: var(--spacing-lg);
+  padding: var(--spacing-2xl);
   min-height: 400px;
 }
 
@@ -414,44 +561,84 @@ export default {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: var(--spacing-xl);
+  padding: var(--spacing-2xl);
   color: var(--color-text-secondary);
-  min-height: 300px;
+  min-height: 400px;
 }
 
 .placeholder-icon {
-  font-size: 3rem;
-  margin-bottom: var(--spacing-md);
-  opacity: 0.6;
+  width: 96px;
+  height: 96px;
+  margin-bottom: var(--spacing-xl);
+  background: linear-gradient(135deg, var(--color-primary-100), var(--color-primary-200));
+  border-radius: var(--border-radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholder-icon-svg {
+  width: 48px;
+  height: 48px;
+  color: var(--color-primary-600);
 }
 
 .table-placeholder h3 {
   color: var(--color-text-primary);
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-xl);
 }
 
 .table-placeholder p {
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-2xl);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-base);
 }
 
 .placeholder-features {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-lg);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--spacing-xl);
   text-align: left;
-  max-width: 800px;
+  max-width: 900px;
 }
 
 .feature-group h4 {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
   color: var(--color-text-primary);
-  margin-bottom: var(--spacing-sm);
-  font-size: 1rem;
+  margin-bottom: var(--spacing-lg);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+}
+
+.feature-group-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--color-primary-600);
 }
 
 .feature-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  margin-bottom: var(--spacing-md);
+}
+
+.feature-check {
+  width: 16px;
+  height: 16px;
   color: var(--color-success-600);
-  font-size: 0.9rem;
-  margin-bottom: var(--spacing-xs);
+  flex-shrink: 0;
+}
+
+.btn-icon {
+  width: 18px;
+  height: 18px;
 }
 
 /* 响应式设计 */
@@ -467,22 +654,36 @@ export default {
 
 @media (max-width: 768px) {
   .directory-management-container {
-    padding: var(--spacing-sm);
+    padding: var(--spacing-md);
   }
   
   .page-header {
     flex-direction: column;
-    gap: var(--spacing-md);
+    gap: var(--spacing-lg);
     text-align: center;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+  
+  .header-actions {
+    flex-wrap: wrap;
+    justify-content: center;
   }
   
   .toolbar {
     flex-direction: column;
-    gap: var(--spacing-sm);
+    gap: var(--spacing-lg);
     align-items: stretch;
   }
   
-  .toolbar-left,
+  .toolbar-left {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
   .toolbar-right {
     justify-content: center;
   }
@@ -493,7 +694,7 @@ export default {
   
   .table-header {
     flex-direction: column;
-    gap: var(--spacing-md);
+    gap: var(--spacing-lg);
     text-align: center;
   }
   

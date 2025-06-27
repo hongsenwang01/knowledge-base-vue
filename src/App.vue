@@ -19,10 +19,7 @@ export default {
   color: var(--color-text-primary);
 }
 
-/* 确保路由视图占满整个容器 */
-.router-view {
-  min-height: 100vh;
-}
+/* 确保路由视图正常滚动 */
 
 /* 全局滚动条样式 */
 ::-webkit-scrollbar {
