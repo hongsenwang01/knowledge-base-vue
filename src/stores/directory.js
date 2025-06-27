@@ -164,15 +164,19 @@ export const useDirectoryStore = defineStore('directory', () => {
       
       // 更新本地目录树
       const directory = findDirectoryById(id)
-      if (!directory) {
-        throw new Error('目录不存在')
+      if (directory) {
+        // 保持children数据
+        transformedDirectory.children = directory.children
+        Object.assign(directory, transformedDirectory)
       }
       
-      // 保持children数据
-      transformedDirectory.children = directory.children
-      Object.assign(directory, transformedDirectory)
+      // 同时更新分页数据中的对应项
+      const pageItem = pageDirectories.value.find(dir => dir.id === id)
+      if (pageItem) {
+        Object.assign(pageItem, transformedDirectory)
+      }
       
-      return directory
+      return transformedDirectory
     } catch (err) {
       error.value = err.message || '更新目录失败'
       console.error('更新目录失败:', err)
@@ -205,13 +209,21 @@ export const useDirectoryStore = defineStore('directory', () => {
         return false
       }
       
-      const removed = removeFromTree(directoryTree.value, id)
-      if (!removed) {
-        throw new Error('目录不存在')
+      // 从目录树中移除
+      removeFromTree(directoryTree.value, id)
+      
+      // 从分页数据中移除
+      const pageIndex = pageDirectories.value.findIndex(dir => dir.id === id)
+      if (pageIndex !== -1) {
+        pageDirectories.value.splice(pageIndex, 1)
+        // 更新总数
+        if (pagination.value.total > 0) {
+          pagination.value.total -= 1
+        }
       }
       
       // 如果删除的是当前目录，切换到根目录
-      if (currentDirectory.value?.id === id) {
+      if (currentDirectory.value?.id === id && directoryTree.value.length > 0) {
         currentDirectory.value = directoryTree.value[0]
       }
       

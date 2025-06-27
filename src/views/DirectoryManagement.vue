@@ -51,172 +51,40 @@
       <!-- 主要内容区域 -->
       <div class="main-content">
         <!-- 目录统计卡片 -->
-        <div class="stats-grid">
-          <div class="stats-card">
-            <div class="stats-icon">
-              <i data-lucide="folder" class="stats-icon-svg"></i>
-            </div>
-            <div class="stats-content">
-              <div class="stats-number">{{ stats.totalFolders.toLocaleString() }}</div>
-              <div class="stats-label">总文件夹</div>
-            </div>
-          </div>
-          <div class="stats-card">
-            <div class="stats-icon">
-              <i data-lucide="file-text" class="stats-icon-svg"></i>
-            </div>
-            <div class="stats-content">
-              <div class="stats-number">{{ stats.totalFiles.toLocaleString() }}</div>
-              <div class="stats-label">总文件</div>
-            </div>
-          </div>
-          <div class="stats-card">
-            <div class="stats-icon">
-              <i data-lucide="hard-drive" class="stats-icon-svg"></i>
-            </div>
-            <div class="stats-content">
-              <div class="stats-number">{{ stats.totalSize }}</div>
-              <div class="stats-label">总大小</div>
-            </div>
-          </div>
-          <div class="stats-card">
-            <div class="stats-icon">
-              <i data-lucide="clock" class="stats-icon-svg"></i>
-            </div>
-            <div class="stats-content">
-              <div class="stats-number">{{ formatDate(stats.lastModified) }}</div>
-              <div class="stats-label">最近修改</div>
-            </div>
-          </div>
-        </div>
+        <DirectoryStats :stats="stats" />
 
         <!-- 目录管理表格 -->
-        <div class="directory-table-container">
-          <div class="table-header">
-            <div class="table-title">
-              <i data-lucide="folder-tree" class="table-title-icon"></i>
-              <h3>目录列表</h3>
-            </div>
-            <div class="table-actions">
-              <div class="search-box">
-                <i data-lucide="search" class="search-icon"></i>
-                <input 
-                  type="text" 
-                  placeholder="搜索目录..." 
-                  class="search-input"
-                  disabled
-                >
-              </div>
-            </div>
-          </div>
-          
-          <div class="table-content">
-            <!-- 加载状态 -->
-            <div v-if="directoryStore.loading" class="table-loading">
-              <div class="loading-spinner"></div>
-              <p>正在加载目录数据...</p>
-            </div>
-            
-            <!-- 错误状态 -->
-            <div v-else-if="directoryStore.error" class="table-error">
-              <div class="error-icon">
-                <i data-lucide="alert-circle" class="error-icon-svg"></i>
-              </div>
-              <h3>加载失败</h3>
-              <p>{{ directoryStore.error }}</p>
-              <button class="btn btn-primary btn-sm" @click="loadDirectories">
-                <i data-lucide="refresh-cw" class="btn-icon"></i>
-                重新加载
-              </button>
-            </div>
-            
-            <!-- 目录列表表格 -->
-            <div v-else-if="directoryStore.pageDirectories.length > 0" class="directory-table">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>目录名称</th>
-                    <th>路径</th>
-                    <th>层级</th>
-                    <th>父目录</th>
-                    <th>描述</th>
-                    <th>创建时间</th>
-                    <th>操作</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="directory in directoryStore.pageDirectories" :key="directory.id">
-                    <td>
-                      <div class="directory-name">
-                        <i data-lucide="folder" class="directory-icon"></i>
-                        <span>{{ directory.name }}</span>
-                        <span v-if="directory.id === 1" class="directory-badge root">根目录</span>
-                      </div>
-                    </td>
-                    <td>
-                      <code class="directory-path">{{ directory.path }}</code>
-                    </td>
-                    <td>
-                      <span class="directory-level">{{ directory.level }}</span>
-                    </td>
-                    <td>
-                      <span v-if="directory.parentId">
-                        {{ getParentDirectoryName(directory.parentId) }}
-                      </span>
-                      <span v-else class="text-muted">无</span>
-                    </td>
-                    <td>
-                      <span class="directory-description">
-                        {{ directory.description || '暂无描述' }}
-                      </span>
-                    </td>
-                    <td>
-                      <time class="directory-time">
-                        {{ formatDateTime(directory.createdAt) }}
-                      </time>
-                    </td>
-                    <td>
-                      <div class="directory-actions">
-                        <button class="btn btn-icon btn-sm" title="编辑" disabled>
-                          <i data-lucide="edit-2"></i>
-                        </button>
-                        <button class="btn btn-icon btn-sm" title="删除" disabled>
-                          <i data-lucide="trash-2"></i>
-                        </button>
-                        <button class="btn btn-icon btn-sm" title="详情" disabled>
-                          <i data-lucide="info"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            
-            <!-- 分页组件 -->
-            <div v-if="directoryStore.pageDirectories.length > 0" class="directory-pagination">
-              <Pagination
-                :current="directoryStore.pagination.current"
-                :size="directoryStore.pagination.size"
-                :total="directoryStore.pagination.total"
-                :pages="directoryStore.pagination.pages"
-                @change-page="handlePageChange"
-                @change-size="handlePageSizeChange"
-              />
-            </div>
-            
-            <!-- 空状态 -->
-            <div v-else class="table-empty">
-              <div class="empty-icon">
-                <i data-lucide="folder-x" class="empty-icon-svg"></i>
-              </div>
-              <h3>暂无目录</h3>
-              <p>系统中还没有创建任何目录</p>
-            </div>
-          </div>
-        </div>
+        <DirectoryTable
+          :directories="directoryStore.pageDirectories"
+          :pagination="directoryStore.pagination"
+          :loading="directoryStore.loading"
+          :error="directoryStore.error"
+          :all-directories="allDirectories"
+          @reload="loadDirectories"
+          @move="handleMoveDirectory"
+          @update="handleUpdateDirectory"
+          @delete="handleDeleteDirectory"
+          @change-page="handlePageChange"
+          @change-size="handlePageSizeChange"
+        />
       </div>
     </div>
+
+    <!-- 更新目录弹窗 -->
+    <UpdateDirectoryModal
+      :show="showUpdateModal"
+      :directory="currentDirectory"
+      @update="confirmUpdate"
+      @cancel="cancelOperation"
+    />
+
+    <!-- 删除目录弹窗 -->
+    <DeleteDirectoryModal
+      :show="showDeleteModal"
+      :directory="currentDirectory"
+      @confirm="confirmDelete"
+      @cancel="cancelOperation"
+    />
   </div>
 </template>
 
@@ -224,16 +92,27 @@
 import { onMounted, ref, computed } from 'vue'
 import { systemStats } from '@/data'
 import { useDirectoryStore } from '@/stores/directory'
-import Pagination from '@/components/Pagination.vue'
+import DirectoryStats from '@/components/DirectoryStats.vue'
+import DirectoryTable from '@/components/DirectoryTable.vue'
+import UpdateDirectoryModal from '@/components/UpdateDirectoryModal.vue'
+import DeleteDirectoryModal from '@/components/DeleteDirectoryModal.vue'
 
 export default {
   name: 'DirectoryManagement',
   components: {
-    Pagination
+    DirectoryStats,
+    DirectoryTable,
+    UpdateDirectoryModal,
+    DeleteDirectoryModal
   },
   setup() {
     const stats = ref(systemStats)
     const directoryStore = useDirectoryStore()
+    
+    // 弹窗相关状态
+    const showUpdateModal = ref(false)
+    const showDeleteModal = ref(false)
+    const currentDirectory = ref(null)
     
     // 获取所有目录的扁平列表
     const allDirectories = computed(() => {
@@ -289,6 +168,81 @@ export default {
       }
     }
 
+    // 处理移动目录
+    const handleMoveDirectory = (directory) => {
+      // TODO: 移动接口还没有完成，暂时只显示提示信息
+      console.log('移动目录功能正在开发中:', directory.name)
+      // 这里可以添加移动目录的逻辑
+      alert('移动功能正在开发中，敬请期待！')
+    }
+
+    // 处理更新目录
+    const handleUpdateDirectory = (directory) => {
+      currentDirectory.value = directory
+      showUpdateModal.value = true
+    }
+
+    // 处理删除目录
+    const handleDeleteDirectory = (directory) => {
+      currentDirectory.value = directory
+      showDeleteModal.value = true
+    }
+
+    // 确认更新目录
+    const confirmUpdate = async (updates) => {
+      if (!currentDirectory.value) return
+      
+      try {
+        await directoryStore.updateDirectory(currentDirectory.value.id, updates)
+        
+        showUpdateModal.value = false
+        currentDirectory.value = null
+        
+        // 重新初始化图标
+        if (window.lucide) {
+          setTimeout(() => {
+            window.lucide.createIcons()
+          }, 100)
+        }
+        
+        alert('目录更新成功！')
+      } catch (error) {
+        console.error('更新目录失败:', error)
+        alert(error.message || '更新目录失败')
+      }
+    }
+
+    // 确认删除目录
+    const confirmDelete = async () => {
+      if (!currentDirectory.value) return
+      
+      try {
+        await directoryStore.deleteDirectory(currentDirectory.value.id)
+        
+        showDeleteModal.value = false
+        currentDirectory.value = null
+        
+        // 重新初始化图标
+        if (window.lucide) {
+          setTimeout(() => {
+            window.lucide.createIcons()
+          }, 100)
+        }
+        
+        alert('目录删除成功！')
+      } catch (error) {
+        console.error('删除目录失败:', error)
+        alert(error.message || '删除目录失败')
+      }
+    }
+
+    // 取消操作
+    const cancelOperation = () => {
+      showUpdateModal.value = false
+      showDeleteModal.value = false
+      currentDirectory.value = null
+    }
+
     onMounted(async () => {
       // 初始化 Lucide 图标
       if (window.lucide) {
@@ -299,39 +253,7 @@ export default {
       await loadDirectories()
     })
 
-    const formatDate = (dateString) => {
-      if (!dateString) return '--'
-      const date = new Date(dateString)
-      return date.toLocaleDateString('zh-CN', {
-        month: 'numeric',
-        day: 'numeric'
-      })
-    }
-    
-    const formatDateTime = (dateString) => {
-      if (!dateString) return '--'
-      const date = new Date(dateString)
-      return date.toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    }
-    
-    // 获取父目录名称
-    const getParentDirectoryName = (parentId) => {
-      // 首先在当前页面数据中查找
-      const parent = directoryStore.pageDirectories.find(dir => dir.id === parentId)
-      if (parent) {
-        return parent.name
-      }
-      
-      // 如果当前页面没有，在树形数据中查找
-      const parentInTree = allDirectories.value.find(dir => dir.id === parentId)
-      return parentInTree ? parentInTree.name : '未知目录'
-    }
+
 
     return {
       stats,
@@ -340,9 +262,16 @@ export default {
       loadDirectories,
       handlePageChange,
       handlePageSizeChange,
-      formatDate,
-      formatDateTime,
-      getParentDirectoryName
+      // 弹窗相关
+      showUpdateModal,
+      showDeleteModal,
+      currentDirectory,
+      handleMoveDirectory,
+      handleUpdateDirectory,
+      handleDeleteDirectory,
+      confirmUpdate,
+      confirmDelete,
+      cancelOperation
     }
   }
 }
@@ -373,214 +302,7 @@ export default {
   backdrop-filter: var(--backdrop-blur-lg);
 }
 
-/* 目录表格样式 */
-.directory-table {
-  background: var(--color-bg-overlay);
-  border-radius: var(--border-radius-lg);
-  overflow: hidden;
-  border: 1px solid var(--color-border-light);
-}
 
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.data-table th {
-  background: var(--color-bg-secondary);
-  padding: var(--spacing-md);
-  text-align: left;
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-  border-bottom: 1px solid var(--color-border-light);
-  font-size: var(--font-size-sm);
-}
-
-.data-table td {
-  padding: var(--spacing-md);
-  border-bottom: 1px solid var(--color-border-light);
-  vertical-align: middle;
-}
-
-.data-table tbody tr:hover {
-  background: var(--color-bg-secondary);
-}
-
-.directory-name {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.directory-icon {
-  width: 16px;
-  height: 16px;
-  color: var(--color-primary-500);
-}
-
-.directory-badge {
-  padding: 2px 8px;
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-}
-
-.directory-badge.root {
-  background: var(--color-primary-100);
-  color: var(--color-primary-700);
-}
-
-.directory-path {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  background: var(--color-bg-secondary);
-  padding: 2px 6px;
-  border-radius: var(--border-radius-sm);
-  color: var(--color-text-secondary);
-}
-
-.directory-level {
-  display: inline-block;
-  width: 24px;
-  height: 24px;
-  background: var(--color-bg-secondary);
-  border-radius: 50%;
-  text-align: center;
-  line-height: 24px;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-primary);
-}
-
-.directory-description {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.directory-time {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-}
-
-.directory-actions {
-  display: flex;
-  gap: var(--spacing-xs);
-}
-
-.text-muted {
-  color: var(--color-text-tertiary);
-  font-style: italic;
-}
-
-/* 加载状态 */
-.table-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-xxl);
-  background: var(--color-bg-overlay);
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--color-border-light);
-}
-
-.loading-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid var(--color-border-light);
-  border-top: 3px solid var(--color-primary-500);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: var(--spacing-md);
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* 错误状态 */
-.table-error {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-xxl);
-  background: var(--color-bg-overlay);
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--color-border-light);
-}
-
-.error-icon {
-  width: 48px;
-  height: 48px;
-  background: var(--color-error-100);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: var(--spacing-md);
-}
-
-.error-icon-svg {
-  width: 24px;
-  height: 24px;
-  color: var(--color-error-600);
-}
-
-.table-error h3 {
-  color: var(--color-text-primary);
-  margin-bottom: var(--spacing-sm);
-}
-
-.table-error p {
-  color: var(--color-text-secondary);
-  margin-bottom: var(--spacing-lg);
-  text-align: center;
-}
-
-/* 空状态 */
-.table-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-xxl);
-  background: var(--color-bg-overlay);
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--color-border-light);
-}
-
-.empty-icon {
-  width: 48px;
-  height: 48px;
-  background: var(--color-bg-secondary);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: var(--spacing-md);
-}
-
-.empty-icon-svg {
-  width: 24px;
-  height: 24px;
-  color: var(--color-text-tertiary);
-}
-
-.table-empty h3 {
-  color: var(--color-text-primary);
-  margin-bottom: var(--spacing-sm);
-}
-
-.table-empty p {
-  color: var(--color-text-secondary);
-  text-align: center;
-}
 
 .header-content {
   display: flex;
@@ -745,160 +467,7 @@ export default {
   cursor: not-allowed;
 }
 
-/* 统计卡片 */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-xl);
-}
 
-.stats-card {
-  background: var(--color-bg-overlay);
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--border-radius-xl);
-  padding: var(--spacing-xl);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-lg);
-  transition: all var(--transition-normal);
-  backdrop-filter: var(--backdrop-blur-lg);
-  position: relative;
-  overflow: hidden;
-}
-
-.stats-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--color-primary-200), transparent);
-}
-
-.stats-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-xl);
-  border-color: var(--color-primary-200);
-}
-
-.stats-icon {
-  width: 56px;
-  height: 56px;
-  background: linear-gradient(135deg, var(--color-primary-100), var(--color-primary-200));
-  border-radius: var(--border-radius-lg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.stats-icon-svg {
-  width: 28px;
-  height: 28px;
-  color: var(--color-primary-600);
-}
-
-.stats-content {
-  flex: 1;
-}
-
-.stats-number {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-text-primary);
-  margin-bottom: var(--spacing-xs);
-}
-
-.stats-label {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-}
-
-/* 目录表格 */
-.directory-table-container {
-  background: var(--color-bg-overlay);
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--border-radius-xl);
-  overflow: hidden;
-  backdrop-filter: var(--backdrop-blur-lg);
-}
-
-.table-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-xl);
-  border-bottom: 1px solid var(--color-border-light);
-  background: var(--color-bg-tertiary);
-}
-
-.table-title {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.table-title-icon {
-  width: 20px;
-  height: 20px;
-  color: var(--color-primary-600);
-}
-
-.table-title h3 {
-  margin: 0;
-  color: var(--color-text-primary);
-  font-weight: var(--font-weight-semibold);
-}
-
-.table-actions {
-  display: flex;
-  gap: var(--spacing-md);
-}
-
-.search-box {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.search-input {
-  padding: var(--spacing-md) var(--spacing-lg) var(--spacing-md) var(--spacing-2xl);
-  border: 1px solid var(--color-border-medium);
-  border-radius: var(--border-radius-lg);
-  background: var(--color-bg-primary);
-  color: var(--color-text-primary);
-  font-size: var(--font-size-base);
-  width: 280px;
-  transition: all var(--transition-normal);
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: var(--color-primary-500);
-  box-shadow: 0 0 0 3px var(--color-primary-100);
-}
-
-.search-input:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.search-icon {
-  position: absolute;
-  left: var(--spacing-md);
-  width: 18px;
-  height: 18px;
-  color: var(--color-text-tertiary);
-  pointer-events: none;
-}
-
-.table-content {
-  padding: var(--spacing-2xl);
-  min-height: 400px;
-}
 
 /* 占位符样式 */
 .table-placeholder {
@@ -987,26 +556,7 @@ export default {
   height: 18px;
 }
 
-/* 分页样式 */
-.directory-pagination {
-  background: var(--color-bg-overlay);
-  border: 1px solid var(--color-border-light);
-  border-top: none;
-  border-radius: 0 0 var(--border-radius-xl) var(--border-radius-xl);
-  overflow: hidden;
-}
-
 /* 响应式设计 */
-@media (max-width: 1024px) {
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .placeholder-features {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (max-width: 768px) {
   .directory-management-container {
     padding: var(--spacing-md);
@@ -1041,20 +591,6 @@ export default {
   
   .toolbar-right {
     justify-content: center;
-  }
-  
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .table-header {
-    flex-direction: column;
-    gap: var(--spacing-lg);
-    text-align: center;
-  }
-  
-  .search-input {
-    width: 100%;
   }
 }
 </style> 
