@@ -16,7 +16,7 @@ const routes = [
     }
   },
   {
-    path: '/file-management',
+    path: '/files',
     name: 'FileManagement',
     component: FileManagement,
     meta: {
@@ -25,7 +25,7 @@ const routes = [
     }
   },
   {
-    path: '/directory-management',
+    path: '/directories',
     name: 'DirectoryManagement',
     component: DirectoryManagement,
     meta: {
