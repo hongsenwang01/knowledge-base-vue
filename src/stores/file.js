@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { mockAPI } from '@/data'
+import { fileAPI, fileDataTransform } from '@/api/file.js'
 
 export const useFileStore = defineStore('file', () => {
   // 状态

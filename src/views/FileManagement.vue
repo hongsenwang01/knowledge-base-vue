@@ -71,7 +71,11 @@
               </div>
             </div>
             <div class="action-section">
-              <button class="btn btn-primary" disabled>
+              <button 
+                class="btn btn-primary" 
+                @click="showUploadDialog"
+                :disabled="!currentDirectoryId || currentDirectoryId === 'root'"
+              >
                 <i data-lucide="upload-cloud" class="btn-icon"></i>
                 上传文件
               </button>
@@ -117,6 +121,15 @@
         </main>
       </div>
     </div>
+
+    <!-- 文件上传对话框 -->
+    <FileUploadDialog
+      :visible="uploadDialogVisible"
+      :directory-id="currentDirectoryId"
+      @close="handleUploadDialogClose"
+      @upload-success="handleUploadSuccess"
+      @upload-error="handleUploadError"
+    />
   </div>
 </template>
 
@@ -125,17 +138,21 @@ import { onMounted, ref } from 'vue'
 import { useDirectoryStore } from '@/stores/directory'
 import { useFileStore } from '@/stores/file'
 import TreeNode from '@/components/common/TreeNode.vue'
+import FileUploadDialog from '@/components/common/FileUploadDialog.vue'
+import { fileAPI, fileDataTransform } from '@/api/file.js'
 
 export default {
   name: 'FileManagement',
   components: {
-    TreeNode
+    TreeNode,
+    FileUploadDialog
   },
   setup() {
     const directoryStore = useDirectoryStore()
     const fileStore = useFileStore()
     
     const currentDirectoryId = ref('root')
+    const uploadDialogVisible = ref(false)
 
     onMounted(async () => {
       // 初始化 Lucide 图标
@@ -150,7 +167,7 @@ export default {
         const firstChild = directoryStore.directoryTree[0].children[0]
         if (firstChild) {
           currentDirectoryId.value = firstChild.id
-          await fileStore.fetchFiles(firstChild.id)
+          await loadDirectoryFiles(firstChild.id)
         }
       }
     })
@@ -158,7 +175,21 @@ export default {
     const selectDirectory = async (directory) => {
       currentDirectoryId.value = directory.id
       directoryStore.setCurrentDirectory(directory)
-      await fileStore.fetchFiles(directory.id)
+      await loadDirectoryFiles(directory.id)
+    }
+
+    const loadDirectoryFiles = async (directoryId) => {
+      try {
+        fileStore.loading = true
+        const filesData = await fileAPI.getFilesByDirectory(directoryId)
+        const transformedFiles = filesData.map(file => fileDataTransform.transformFile(file))
+        fileStore.files = transformedFiles
+      } catch (error) {
+        console.error('加载文件列表失败:', error)
+        fileStore.files = []
+      } finally {
+        fileStore.loading = false
+      }
     }
 
     const selectFile = (file) => {
@@ -166,8 +197,48 @@ export default {
     }
 
     const downloadFile = async (file) => {
-      // 这里可以实现文件下载逻辑
-      console.log('下载文件:', file.name)
+      try {
+        const blob = await fileAPI.downloadFile(file.id)
+        // 创建下载链接
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = file.name
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+      } catch (error) {
+        console.error('下载文件失败:', error)
+      }
+    }
+
+    // 上传对话框相关方法
+    const showUploadDialog = () => {
+      uploadDialogVisible.value = true
+    }
+
+    const handleUploadDialogClose = () => {
+      uploadDialogVisible.value = false
+    }
+
+    const handleUploadSuccess = async (uploadResults) => {
+      console.log('文件上传成功:', uploadResults)
+      uploadDialogVisible.value = false
+      
+      // 刷新当前目录的文件列表
+      if (currentDirectoryId.value && currentDirectoryId.value !== 'root') {
+        await loadDirectoryFiles(currentDirectoryId.value)
+      }
+      
+      // 显示成功消息（这里可以使用toast组件）
+      alert(`成功上传 ${uploadResults.length} 个文件`)
+    }
+
+    const handleUploadError = (error) => {
+      console.error('文件上传失败:', error)
+      // 显示错误消息（这里可以使用toast组件）
+      alert('文件上传失败: ' + error.message)
     }
 
     const getFileIcon = (extension) => {
@@ -212,9 +283,14 @@ export default {
       directoryStore,
       fileStore,
       currentDirectoryId,
+      uploadDialogVisible,
       selectDirectory,
       selectFile,
       downloadFile,
+      showUploadDialog,
+      handleUploadDialogClose,
+      handleUploadSuccess,
+      handleUploadError,
       getFileIcon,
       formatDate
     }
@@ -312,7 +388,7 @@ export default {
 /* 主要内容区域 */
 .main-content {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 380px 1fr;
   gap: var(--spacing-xl);
   min-height: calc(100vh - 240px);
 }
@@ -664,7 +740,7 @@ export default {
 /* 响应式设计 */
 @media (max-width: 1024px) {
   .main-content {
-    grid-template-columns: 280px 1fr;
+    grid-template-columns: 320px 1fr;
   }
 }
 

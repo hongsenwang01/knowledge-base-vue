@@ -14,7 +14,7 @@
       <div class="node-toggle placeholder" v-else></div>
       
       <i data-lucide="folder" class="node-icon"></i>
-      <span class="node-name">{{ node.name }}</span>
+      <span class="node-name" :title="node.name">{{ node.name }}</span>
       <span class="node-count" v-if="node.fileCount !== undefined">({{ node.fileCount }})</span>
     </div>
     
@@ -98,7 +98,7 @@ export default {
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-sm);
   border-radius: var(--border-radius-md);
   cursor: pointer;
   transition: all var(--transition-normal);
@@ -153,9 +153,14 @@ export default {
 .node-name {
   flex: 1;
   font-size: var(--font-size-sm);
-  white-space: nowrap;
+  line-height: 1.4;
+  word-break: break-word;
+  min-width: 0;
+  max-height: 2.8em; /* 允许最多2行 */
   overflow: hidden;
-  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .node-count {
@@ -165,9 +170,9 @@ export default {
 }
 
 .node-children {
-  margin-left: var(--spacing-lg);
+  margin-left: var(--spacing-md);
   border-left: 1px solid var(--color-border-light);
-  padding-left: var(--spacing-md);
+  padding-left: var(--spacing-sm);
   margin-top: var(--spacing-xs);
 }
 
