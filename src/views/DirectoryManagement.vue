@@ -38,10 +38,20 @@
         </div>
         <div class="toolbar-right">
           <div class="view-switcher">
-            <button class="btn btn-icon active" title="列表视图">
+            <button 
+              class="btn btn-icon" 
+              :class="{ active: viewMode === 'table' }"
+              title="列表视图"
+              @click="setViewMode('table')"
+            >
               <el-icon class="view-icon"><List /></el-icon>
             </button>
-            <button class="btn btn-icon" title="树形视图">
+            <button 
+              class="btn btn-icon" 
+              :class="{ active: viewMode === 'tree' }"
+              title="树形视图"
+              @click="setViewMode('tree')"
+            >
               <el-icon class="view-icon"><Share /></el-icon>
             </button>
           </div>
@@ -53,8 +63,9 @@
         <!-- 目录统计卡片 -->
         <DirectoryStats :stats="stats" />
 
-        <!-- 目录管理表格 -->
+        <!-- 列表视图 -->
         <DirectoryTable
+          v-if="viewMode === 'table'"
           :directories="directoryStore.pageDirectories"
           :pagination="directoryStore.pagination"
           :loading="directoryStore.loading"
@@ -66,6 +77,18 @@
           @delete="handleDeleteDirectory"
           @change-page="handlePageChange"
           @change-size="handlePageSizeChange"
+        />
+
+        <!-- 树形视图 -->
+        <DirectoryTreeView
+          v-if="viewMode === 'tree'"
+          :directories="directoryStore.directoryTree"
+          :loading="directoryStore.loading"
+          :error="directoryStore.error"
+          :current-id="currentDirectoryId"
+          @node-select="handleNodeSelect"
+          @node-action="handleNodeAction"
+          @reload="loadDirectoryTree"
         />
       </div>
     </div>
@@ -86,10 +109,19 @@
       @cancel="cancelOperation"
     />
 
+    <!-- 移动目录弹窗 -->
+    <MoveDirectoryModal
+      :show="showMoveModal"
+      :directory="currentDirectory"
+      :directories="directoryStore.directoryTree"
+      @move="confirmMove"
+      @cancel="cancelOperation"
+    />
+
     <!-- 新建目录弹窗 -->
     <CreateDirectoryModal
       :show="showCreateModal"
-      :directories="allDirectories"
+      :directories="directoryStore.directoryTree"
       @create="confirmCreate"
       @cancel="cancelOperation"
     />
@@ -102,8 +134,10 @@ import { systemStats } from '@/data'
 import { useDirectoryStore } from '@/stores/directory'
 import DirectoryStats from '@/components/DirectoryStats.vue'
 import DirectoryTable from '@/components/DirectoryTable.vue'
+import DirectoryTreeView from '@/components/DirectoryTreeView.vue'
 import UpdateDirectoryModal from '@/components/UpdateDirectoryModal.vue'
 import DeleteDirectoryModal from '@/components/DeleteDirectoryModal.vue'
+import MoveDirectoryModal from '@/components/MoveDirectoryModal.vue'
 import CreateDirectoryModal from '@/components/CreateDirectoryModal.vue'
 import toast from '@/utils/toast'
 // 导入Element Plus图标
@@ -122,8 +156,10 @@ export default {
   components: {
     DirectoryStats,
     DirectoryTable,
+    DirectoryTreeView,
     UpdateDirectoryModal,
     DeleteDirectoryModal,
+    MoveDirectoryModal,
     CreateDirectoryModal,
     // 注册图标组件
     Setting,
@@ -138,9 +174,14 @@ export default {
     const stats = ref(systemStats)
     const directoryStore = useDirectoryStore()
     
+    // 视图模式
+    const viewMode = ref('table') // 'table' 或 'tree'
+    const currentDirectoryId = ref(null)
+    
     // 弹窗相关状态
     const showUpdateModal = ref(false)
     const showDeleteModal = ref(false)
+    const showMoveModal = ref(false)
     const showCreateModal = ref(false)
     const currentDirectory = ref(null)
     
@@ -185,10 +226,8 @@ export default {
 
     // 处理移动目录
     const handleMoveDirectory = (directory) => {
-      // TODO: 移动接口还没有完成，暂时只显示提示信息
-      console.log('移动目录功能正在开发中:', directory.name)
-      // 这里可以添加移动目录的逻辑
-      toast.info('移动功能正在开发中，敬请期待！')
+      currentDirectory.value = directory
+      showMoveModal.value = true
     }
 
     // 处理更新目录
@@ -206,6 +245,45 @@ export default {
     // 处理新建目录
     const handleCreateDirectory = () => {
       showCreateModal.value = true
+    }
+
+    // 设置视图模式
+    const setViewMode = (mode) => {
+      viewMode.value = mode
+    }
+
+    // 加载目录树
+    const loadDirectoryTree = async () => {
+      try {
+        await directoryStore.fetchDirectoryTree()
+      } catch (error) {
+        console.error('加载目录树失败:', error)
+      }
+    }
+
+    // 处理节点选择
+    const handleNodeSelect = (node) => {
+      currentDirectoryId.value = node.id
+      directoryStore.setCurrentDirectory(node)
+    }
+
+    // 处理节点操作
+    const handleNodeAction = (action, node) => {
+      currentDirectory.value = node
+      
+      switch (action) {
+        case 'move':
+          showMoveModal.value = true
+          break
+        case 'edit':
+          showUpdateModal.value = true
+          break
+        case 'delete':
+          showDeleteModal.value = true
+          break
+        default:
+          console.warn('未知的节点操作:', action)
+      }
     }
 
     // 确认更新目录
@@ -244,6 +322,36 @@ export default {
       }
     }
 
+    // 确认移动目录
+    const confirmMove = async (moveData) => {
+      if (!currentDirectory.value) return
+      
+      try {
+        await directoryStore.moveDirectory(moveData.directoryId, moveData.newParentId)
+        
+        showMoveModal.value = false
+        currentDirectory.value = null
+        
+        // 显示成功提示
+        toast.success('目录移动成功！')
+      } catch (error) {
+        console.error('移动目录失败:', error)
+        
+        // 处理不同的错误类型
+        if (error.message.includes('目录名称重复') || error.message.includes('重复')) {
+          toast.error('目标目录下已存在同名目录')
+        } else if (error.message.includes('目录不存在')) {
+          toast.error('目标目录不存在，请重新选择')
+        } else if (error.message.includes('循环引用') || error.message.includes('子目录')) {
+          toast.error('不能移动到自己的子目录下')
+        } else if (error.message.includes('根目录')) {
+          toast.error('不能移动根目录')
+        } else {
+          toast.error(error.message || '移动目录失败')
+        }
+      }
+    }
+
     // 确认创建目录
     const confirmCreate = async (createData) => {
       try {
@@ -273,6 +381,7 @@ export default {
     const cancelOperation = () => {
       showUpdateModal.value = false
       showDeleteModal.value = false
+      showMoveModal.value = false
       showCreateModal.value = false
       currentDirectory.value = null
     }
@@ -296,9 +405,17 @@ export default {
       loadDirectories,
       handlePageChange,
       handlePageSizeChange,
+      // 视图相关
+      viewMode,
+      currentDirectoryId,
+      setViewMode,
+      loadDirectoryTree,
+      handleNodeSelect,
+      handleNodeAction,
       // 弹窗相关
       showUpdateModal,
       showDeleteModal,
+      showMoveModal,
       showCreateModal,
       currentDirectory,
       handleMoveDirectory,
@@ -307,6 +424,7 @@ export default {
       handleCreateDirectory,
       confirmUpdate,
       confirmDelete,
+      confirmMove,
       confirmCreate,
       cancelOperation
     }

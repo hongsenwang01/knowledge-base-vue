@@ -291,33 +291,64 @@ export const directoryTree = {
   ]
 }
 
+// 将树形结构扁平化，并添加 parentId
+const flattenDirectoryTree = (node, parentId = null, level = 0) => {
+  const { children, ...rest } = node
+  
+  const currentNode = {
+    ...rest,
+    parentId,
+    level,
+    // 确保 id 和 name 存在，以符合后端扁平列表的格式
+    id: node.id || 'unknown',
+    name: node.name || 'Unnamed'
+  }
+  
+  // 移除原始 children 属性，因为它不属于扁平结构
+  delete currentNode.children
+  
+  let result = [currentNode]
+  
+  if (children && children.length > 0) {
+    children.forEach(child => {
+      result = result.concat(flattenDirectoryTree(child, node.id, level + 1))
+    })
+  }
+  
+  return result
+}
+
 // 扁平化的目录列表（用于快速查找）
-export const flatDirectories = [
-  { id: 'root', name: '根目录', path: '/', parentId: null, level: 0 },
-  { id: 'documents', name: '文档', path: '/documents', parentId: 'root', level: 1 },
-  { id: 'work', name: '工作文档', path: '/documents/work', parentId: 'documents', level: 2 },
-  { id: 'projects', name: '项目文档', path: '/documents/work/projects', parentId: 'work', level: 3 },
-  { id: 'reports', name: '报告', path: '/documents/work/reports', parentId: 'work', level: 3 },
-  { id: 'contracts', name: '合同', path: '/documents/work/contracts', parentId: 'work', level: 3 },
-  { id: 'personal', name: '个人文档', path: '/documents/personal', parentId: 'documents', level: 2 },
-  { id: 'finance', name: '财务', path: '/documents/personal/finance', parentId: 'personal', level: 3 },
-  { id: 'health', name: '健康', path: '/documents/personal/health', parentId: 'personal', level: 3 },
-  { id: 'archive', name: '归档文档', path: '/documents/archive', parentId: 'documents', level: 2 },
-  { id: 'media', name: '媒体文件', path: '/media', parentId: 'root', level: 1 },
-  { id: 'images', name: '图片', path: '/media/images', parentId: 'media', level: 2 },
-  { id: 'photos', name: '照片', path: '/media/images/photos', parentId: 'images', level: 3 },
-  { id: 'screenshots', name: '截图', path: '/media/images/screenshots', parentId: 'images', level: 3 },
-  { id: 'graphics', name: '设计图', path: '/media/images/graphics', parentId: 'images', level: 3 },
-  { id: 'videos', name: '视频', path: '/media/videos', parentId: 'media', level: 2 },
-  { id: 'tutorials', name: '教程', path: '/media/videos/tutorials', parentId: 'videos', level: 3 },
-  { id: 'presentations', name: '演示', path: '/media/videos/presentations', parentId: 'videos', level: 3 },
-  { id: 'audio', name: '音频', path: '/media/audio', parentId: 'media', level: 2 },
-  { id: 'web-development', name: 'Web开发', path: '/projects/web-development', parentId: 'projects', level: 2 },
-  { id: 'mobile-apps', name: '移动应用', path: '/projects/mobile-apps', parentId: 'projects', level: 2 },
-  { id: 'data-analysis', name: '数据分析', path: '/projects/data-analysis', parentId: 'projects', level: 2 },
-  { id: 'backup', name: '备份', path: '/backup', parentId: 'root', level: 1 },
-  { id: 'temp', name: '临时文件', path: '/temp', parentId: 'root', level: 1 }
-]
+// export const flatDirectories = [
+//   { id: 'root', name: '根目录', path: '/', parentId: null, level: 0 },
+//   { id: 'documents', name: '文档', path: '/documents', parentId: 'root', level: 1 },
+//   { id: 'work', name: '工作文档', path: '/documents/work', parentId: 'documents', level: 2 },
+//   { id: 'projects', name: '项目文档', path: '/documents/work/projects', parentId: 'work', level: 3 },
+//   { id: 'reports', name: '报告', path: '/documents/work/reports', parentId: 'work', level: 3 },
+//   { id: 'contracts', name: '合同', path: '/documents/work/contracts', parentId: 'work', level: 3 },
+//   { id: 'personal', name: '个人文档', path: '/documents/personal', parentId: 'documents', level: 2 },
+//   { id: 'finance', name: '财务', path: '/documents/personal/finance', parentId: 'personal', level: 3 },
+//   { id: 'health', name: '健康', path: '/documents/personal/health', parentId: 'personal', level: 3 },
+//   { id: 'archive', name: '归档文档', path: '/documents/archive', parentId: 'documents', level: 2 },
+//   { id: 'media', name: '媒体文件', path: '/media', parentId: 'root', level: 1 },
+//   { id: 'images', name: '图片', path: '/media/images', parentId: 'media', level: 2 },
+//   { id: 'photos', name: '照片', path: '/media/images/photos', parentId: 'images', level: 3 },
+//   { id: 'screenshots', name: '截图', path: '/media/images/screenshots', parentId: 'images', level: 3 },
+//   { id: 'graphics', name: '设计图', path: '/media/images/graphics', parentId: 'images', level: 3 },
+//   { id: 'videos', name: '视频', path: '/media/videos', parentId: 'media', level: 2 },
+//   { id: 'tutorials', name: '教程', path: '/media/videos/tutorials', parentId: 'videos', level: 3 },
+//   { id: 'presentations', name: '演示', path: '/media/videos/presentations', parentId: 'videos', level: 3 },
+//   { id: 'audio', name: '音频', path: '/media/audio', parentId: 'media', level: 2 },
+//   { id: 'web-development', name: 'Web开发', path: '/projects/web-development', parentId: 'projects', level: 2 },
+//   { id: 'mobile-apps', name: '移动应用', path: '/projects/mobile-apps', parentId: 'projects', level: 2 },
+//   { id: 'data-analysis', name: '数据分析', path: '/projects/data-analysis', parentId: 'projects', level: 2 },
+//   { id: 'backup', name: '备份', path: '/backup', parentId: 'root', level: 1 },
+//   { id: 'temp', name: '临时文件', path: '/temp', parentId: 'root', level: 1 }
+// ]
+
+// 通过遍历 `directoryTree` 动态生成扁平化列表
+// 注意：根节点的 parentId 为 null，这与 transformToTree 逻辑一致
+export const flatDirectories = flattenDirectoryTree(directoryTree)
 
 export default {
   directoryTree,

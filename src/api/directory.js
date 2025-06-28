@@ -75,6 +75,18 @@ export const directoryAPI = {
     const params = force ? { force: true } : {}
     await apiClient.delete(`/api/v1/directories/${directoryId}`, { params })
     return true
+  },
+
+  /**
+   * 移动目录
+   * @param {string|number} directoryId 目录ID
+   * @param {Object} moveData 移动数据
+   * @param {string|number|null} moveData.newParentId 新的父目录ID，null或0表示移动到根目录
+   * @returns {Promise<Object>} 移动后的目录信息
+   */
+  async moveDirectory(directoryId, moveData) {
+    const response = await apiClient.patch(`/api/v1/directories/${directoryId}/move`, moveData)
+    return response.data
   }
 }
 

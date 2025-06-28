@@ -37,9 +37,12 @@ export const useDirectoryStore = defineStore('directory', () => {
     try {
       // 调用真实API获取目录列表
       const directories = await directoryAPI.getDirectories()
+
       
       // 将扁平的目录列表转换为树形结构
       const tree = directoryDataTransform.transformToTree(directories)
+      
+      
       directoryTree.value = tree
       
       // 设置默认当前目录为根目录（第一个根目录）
@@ -244,6 +247,88 @@ export const useDirectoryStore = defineStore('directory', () => {
     }
   }
   
+  const moveDirectory = async (id, newParentId) => {
+    loading.value = true
+    error.value = null
+    
+    try {
+      // 调用真实API移动目录
+      const movedDirectory = await directoryAPI.moveDirectory(id, { newParentId })
+      
+      // 转换返回的数据格式
+      const transformedDirectory = directoryDataTransform.transformDirectory(movedDirectory)
+      
+      // 从原位置移除目录
+      const directory = findDirectoryById(id)
+      if (!directory) {
+        throw new Error('要移动的目录不存在')
+      }
+      
+      // 保存目录的原始数据（包括children）
+      const directoryData = { ...directory }
+      
+      // 从原位置移除
+      const removeFromTree = (tree, targetId) => {
+        for (let i = 0; i < tree.length; i++) {
+          if (tree[i].id === targetId) {
+            const removed = tree.splice(i, 1)[0]
+            return removed
+          }
+          if (tree[i].children && tree[i].children.length > 0) {
+            const removed = removeFromTree(tree[i].children, targetId)
+            if (removed) {
+              // 更新父目录的folderCount
+              tree[i].folderCount = tree[i].children.length
+              return removed
+            }
+          }
+        }
+        return null
+      }
+      
+      const removedDirectory = removeFromTree(directoryTree.value, id)
+      if (!removedDirectory) {
+        throw new Error('从目录树中移除目录失败')
+      }
+      
+      // 更新目录信息（主要是path和parentId）
+      Object.assign(removedDirectory, transformedDirectory)
+      
+      // 添加到新位置
+      if (newParentId === null || newParentId === 0) {
+        // 移动到根目录
+        directoryTree.value.push(removedDirectory)
+      } else {
+        // 移动到指定父目录
+        const newParent = findDirectoryById(newParentId)
+        if (!newParent) {
+          throw new Error('目标父目录不存在')
+        }
+        
+        if (!newParent.children) {
+          newParent.children = []
+        }
+        newParent.children.push(removedDirectory)
+        newParent.folderCount = newParent.children.length
+        newParent.hasChildren = true
+      }
+      
+      // 更新分页数据中的对应项
+      const pageItem = pageDirectories.value.find(dir => dir.id === id)
+      if (pageItem) {
+        Object.assign(pageItem, transformedDirectory)
+      }
+      
+      return transformedDirectory
+    } catch (err) {
+      error.value = err.message || '移动目录失败'
+      console.error('移动目录失败:', err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+  
   const clearError = () => {
     error.value = null
   }
@@ -273,6 +358,7 @@ export const useDirectoryStore = defineStore('directory', () => {
     createDirectory,
     updateDirectory,
     deleteDirectory,
+    moveDirectory,
     clearError
   }
 }) 
