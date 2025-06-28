@@ -329,6 +329,62 @@ export const useDirectoryStore = defineStore('directory', () => {
     }
   }
   
+  const searchDirectories = async (keyword) => {
+    loading.value = true
+    error.value = null
+    
+    try {
+      if (!keyword.trim()) {
+        // 如果关键词为空，重新加载分页数据
+        await fetchDirectoriesPage()
+        return pageDirectories.value
+      }
+      
+      // 从所有目录数据中搜索匹配的目录
+      const allDirs = []
+      const flattenDirectories = (dirs) => {
+        dirs.forEach(dir => {
+          allDirs.push(dir)
+          if (dir.children && dir.children.length > 0) {
+            flattenDirectories(dir.children)
+          }
+        })
+      }
+      
+      // 展平目录树获取所有目录
+      flattenDirectories(directoryTree.value)
+      
+      // 执行前端搜索过滤
+      const keywordLower = keyword.toLowerCase().trim()
+      const searchResults = allDirs.filter(directory => {
+        return (
+          directory.name.toLowerCase().includes(keywordLower) ||
+          directory.path.toLowerCase().includes(keywordLower) ||
+          (directory.description && directory.description.toLowerCase().includes(keywordLower))
+        )
+      })
+      
+      // 更新分页数据为搜索结果
+      pageDirectories.value = searchResults
+      
+      // 更新分页信息
+      pagination.value = {
+        current: 1,
+        size: searchResults.length,
+        total: searchResults.length,
+        pages: 1
+      }
+      
+      return searchResults
+    } catch (err) {
+      error.value = err.message || '搜索目录失败'
+      console.error('搜索目录失败:', err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+  
   const clearError = () => {
     error.value = null
   }
@@ -359,6 +415,7 @@ export const useDirectoryStore = defineStore('directory', () => {
     updateDirectory,
     deleteDirectory,
     moveDirectory,
+    searchDirectories,
     clearError
   }
 }) 

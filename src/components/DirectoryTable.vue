@@ -12,8 +12,18 @@
             type="text" 
             placeholder="搜索目录..." 
             class="search-input"
-            disabled
+            v-model="searchKeyword"
+            @input="handleSearch"
+            @keyup.enter="handleSearch"
           >
+          <button 
+            v-if="searchKeyword" 
+            class="search-clear"
+            @click="clearSearch"
+            title="清除搜索"
+          >
+            <el-icon><Close /></el-icon>
+          </button>
         </div>
         <button class="btn btn-primary" @click="$emit('create-directory')">
           <el-icon class="btn-icon"><FolderAdd /></el-icon>
@@ -57,7 +67,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="directory in directories" :key="directory.id">
+            <tr v-for="directory in filteredDirectories" :key="directory.id">
               <td>
                 <div class="directory-name">
                   <el-icon class="directory-icon"><Folder /></el-icon>
@@ -121,7 +131,7 @@
       </div>
       
       <!-- 分页组件 -->
-      <div v-if="directories.length > 0" class="directory-pagination">
+      <div v-if="!searchKeyword && directories.length > 0" class="directory-pagination">
         <Pagination
           :current="pagination.current"
           :size="pagination.size"
@@ -132,33 +142,54 @@
         />
       </div>
       
+      <!-- 搜索结果统计 -->
+      <div v-if="searchKeyword" class="search-result-info">
+        <p>
+          <el-icon><Search /></el-icon>
+          搜索 "{{ searchKeyword }}" 找到 {{ filteredDirectories.length }} 个结果
+        </p>
+      </div>
+      
       <!-- 空状态 -->
-      <div v-else class="table-empty">
+      <div v-if="!searchKeyword && directories.length === 0" class="table-empty">
         <div class="empty-icon">
           <el-icon class="empty-icon-svg"><FolderDelete /></el-icon>
         </div>
         <h3>暂无目录</h3>
         <p>系统中还没有创建任何目录</p>
       </div>
+      
+      <!-- 搜索无结果 -->
+      <div v-if="searchKeyword && filteredDirectories.length === 0" class="search-empty">
+        <div class="empty-icon">
+          <el-icon class="empty-icon-svg"><Search /></el-icon>
+        </div>
+        <h3>未找到匹配的目录</h3>
+        <p>尝试使用其他关键词搜索</p>
+        <button class="btn btn-primary btn-sm" @click="clearSearch">
+          清除搜索
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import { onMounted, watch } from 'vue'
+import { onMounted, watch, ref, computed } from 'vue'
 import Pagination from '@/components/Pagination.vue'
 // 导入Element Plus图标
-import { 
-  FolderOpened, 
-  Search, 
-  Warning, 
-  Refresh, 
-  Folder, 
-  Sort, 
-  Edit, 
-  Delete, 
+import {
+  FolderOpened,
+  Search,
+  Warning,
+  Refresh,
+  Folder,
+  Sort,
+  Edit,
+  Delete,
   FolderDelete,
-  FolderAdd
+  FolderAdd,
+  Close
 } from '@element-plus/icons-vue'
 
 export default {
@@ -175,7 +206,8 @@ export default {
     Edit,
     Delete,
     FolderDelete,
-    FolderAdd
+    FolderAdd,
+    Close
   },
   props: {
     directories: {
@@ -199,8 +231,12 @@ export default {
       default: () => []
     }
   },
-  emits: ['reload', 'move', 'update', 'delete', 'change-page', 'change-size', 'create-directory'],
-  setup(props) {
+  emits: ['reload', 'move', 'update', 'delete', 'change-page', 'change-size', 'create-directory', 'search'],
+  setup(props, { emit }) {
+    // 搜索相关状态
+    const searchKeyword = ref('')
+    const isSearching = ref(false)
+    
     const formatDateTime = (dateString) => {
       if (!dateString) return '--'
       const date = new Date(dateString)
@@ -226,6 +262,40 @@ export default {
       return parentInTree ? parentInTree.name : '未知目录'
     }
 
+    // 过滤后的目录列表
+    const filteredDirectories = computed(() => {
+      if (!searchKeyword.value.trim()) {
+        return props.directories
+      }
+      
+      const keyword = searchKeyword.value.toLowerCase().trim()
+      return props.directories.filter(directory => {
+        return (
+          directory.name.toLowerCase().includes(keyword) ||
+          directory.path.toLowerCase().includes(keyword) ||
+          (directory.description && directory.description.toLowerCase().includes(keyword))
+        )
+      })
+    })
+
+    // 搜索处理函数
+    const handleSearch = () => {
+      if (searchKeyword.value.trim()) {
+        isSearching.value = true
+        // 发送搜索事件给父组件
+        emit('search', searchKeyword.value.trim())
+      } else {
+        clearSearch()
+      }
+    }
+
+    // 清除搜索
+    const clearSearch = () => {
+      searchKeyword.value = ''
+      isSearching.value = false
+      emit('search', '')
+    }
+
     // 监听 directories 变化，Element Plus图标会自动渲染
     watch(() => props.directories, () => {
       // Element Plus 图标会自动渲染，无需手动初始化
@@ -236,6 +306,11 @@ export default {
     })
 
     return {
+      searchKeyword,
+      isSearching,
+      filteredDirectories,
+      handleSearch,
+      clearSearch,
       formatDateTime,
       getParentDirectoryName
     }
@@ -321,6 +396,27 @@ export default {
   color: var(--color-text-tertiary);
   pointer-events: none;
   font-size: 18px;
+}
+
+.search-clear {
+  position: absolute;
+  right: var(--spacing-md);
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  border-radius: var(--border-radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.search-clear:hover {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
 }
 
 .table-content {
@@ -645,6 +741,57 @@ export default {
   overflow: hidden;
 }
 
+/* 搜索结果统计 */
+.search-result-info {
+  padding: var(--spacing-lg) var(--spacing-xl);
+  background: var(--color-bg-overlay);
+  border: 1px solid var(--color-border-light);
+  border-top: none;
+  border-radius: 0 0 var(--border-radius-xl) var(--border-radius-xl);
+}
+
+.search-result-info p {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.search-result-info .el-icon {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+  color: var(--color-primary-600);
+}
+
+/* 搜索空状态 */
+.search-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-3xl);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.search-empty .empty-icon {
+  margin-bottom: var(--spacing-lg);
+}
+
+.search-empty h3 {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-sm);
+}
+
+.search-empty p {
+  margin-bottom: var(--spacing-lg);
+  font-size: var(--font-size-base);
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .table-header {
@@ -653,8 +800,23 @@ export default {
     text-align: center;
   }
   
+  .table-actions {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    width: 100%;
+  }
+  
+  .search-box {
+    width: 100%;
+  }
+  
   .search-input {
     width: 100%;
+  }
+  
+  .search-result-info,
+  .search-empty {
+    padding: var(--spacing-lg);
   }
 }
 </style> 

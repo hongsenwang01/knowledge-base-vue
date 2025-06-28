@@ -80,6 +80,7 @@
           @change-page="handlePageChange"
           @change-size="handlePageSizeChange"
           @create-directory="handleCreateDirectory"
+          @search="handleSearchDirectories"
         />
 
         <!-- 树形视图 -->
@@ -248,6 +249,22 @@ export default {
     // 处理新建目录
     const handleCreateDirectory = () => {
       showCreateModal.value = true
+    }
+
+    // 处理搜索目录
+    const handleSearchDirectories = async (keyword) => {
+      try {
+        if (keyword.trim()) {
+          // 执行搜索
+          await directoryStore.searchDirectories(keyword)
+        } else {
+          // 清除搜索，重新加载分页数据
+          await directoryStore.fetchDirectoriesPage()
+        }
+      } catch (error) {
+        console.error('搜索目录失败:', error)
+        toast.error('搜索失败，请重试')
+      }
     }
 
     // 设置视图模式
@@ -425,6 +442,7 @@ export default {
       handleUpdateDirectory,
       handleDeleteDirectory,
       handleCreateDirectory,
+      handleSearchDirectories,
       confirmUpdate,
       confirmDelete,
       confirmMove,
