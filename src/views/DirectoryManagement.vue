@@ -24,46 +24,11 @@
         </div>
       </header>
 
-      <!-- 工具栏 -->
-      <!-- 
-      <div class="toolbar">
-        <div class="toolbar-left">
-          <button class="btn btn-primary" @click="handleCreateDirectory">
-            <el-icon class="btn-icon"><FolderAdd /></el-icon>
-            新建文件夹
-          </button>
-          <button class="btn btn-outline" disabled>
-            <el-icon class="btn-icon"><EditPen /></el-icon>
-            批量操作
-          </button>
-        </div>
-        <div class="toolbar-right">
-          <div class="view-switcher">
-            <button 
-              class="btn btn-icon" 
-              :class="{ active: viewMode === 'table' }"
-              title="列表视图"
-              @click="setViewMode('table')"
-            >
-              <el-icon class="view-icon"><List /></el-icon>
-            </button>
-            <button 
-              class="btn btn-icon" 
-              :class="{ active: viewMode === 'tree' }"
-              title="树形视图"
-              @click="setViewMode('tree')"
-            >
-              <el-icon class="view-icon"><Share /></el-icon>
-            </button>
-          </div>
-        </div>
-      </div>
-      -->
 
       <!-- 主要内容区域 -->
       <div class="main-content">
         <!-- 目录统计卡片 -->
-        <DirectoryStats :stats="stats" />
+        <DirectoryStats />
 
         <!-- 列表视图 -->
         <DirectoryTable
@@ -134,7 +99,6 @@
 
 <script>
 import { onMounted, ref, computed } from 'vue'
-import { systemStats } from '@/data'
 import { useDirectoryStore } from '@/stores/directory'
 import DirectoryStats from '@/components/DirectoryStats.vue'
 import DirectoryTable from '@/components/DirectoryTable.vue'
@@ -175,7 +139,6 @@ export default {
     Share
   },
   setup() {
-    const stats = ref(systemStats)
     const directoryStore = useDirectoryStore()
     
     // 视图模式
@@ -419,7 +382,6 @@ export default {
 
 
     return {
-      stats,
       directoryStore,
       allDirectories,
       loadDirectories,
