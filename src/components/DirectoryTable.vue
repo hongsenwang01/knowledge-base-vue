@@ -15,6 +15,10 @@
             disabled
           >
         </div>
+        <button class="btn btn-primary" @click="$emit('create-directory')">
+          <el-icon class="btn-icon"><FolderAdd /></el-icon>
+          新建文件夹
+        </button>
       </div>
     </div>
     
@@ -153,7 +157,8 @@ import {
   Sort, 
   Edit, 
   Delete, 
-  FolderDelete 
+  FolderDelete,
+  FolderAdd
 } from '@element-plus/icons-vue'
 
 export default {
@@ -169,7 +174,8 @@ export default {
     Sort,
     Edit,
     Delete,
-    FolderDelete
+    FolderDelete,
+    FolderAdd
   },
   props: {
     directories: {
@@ -193,7 +199,7 @@ export default {
       default: () => []
     }
   },
-  emits: ['reload', 'move', 'update', 'delete', 'change-page', 'change-size'],
+  emits: ['reload', 'move', 'update', 'delete', 'change-page', 'change-size', 'create-directory'],
   setup(props) {
     const formatDateTime = (dateString) => {
       if (!dateString) return '--'

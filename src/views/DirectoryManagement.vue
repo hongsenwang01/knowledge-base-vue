@@ -25,6 +25,7 @@
       </header>
 
       <!-- 工具栏 -->
+      <!-- 
       <div class="toolbar">
         <div class="toolbar-left">
           <button class="btn btn-primary" @click="handleCreateDirectory">
@@ -57,6 +58,7 @@
           </div>
         </div>
       </div>
+      -->
 
       <!-- 主要内容区域 -->
       <div class="main-content">
@@ -77,6 +79,7 @@
           @delete="handleDeleteDirectory"
           @change-page="handlePageChange"
           @change-size="handlePageSizeChange"
+          @create-directory="handleCreateDirectory"
         />
 
         <!-- 树形视图 -->

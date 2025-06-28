@@ -1,411 +1,655 @@
 <template>
-  <div v-if="show" class="modal-overlay" @click="$emit('cancel')">
-    <div class="modal-content" @click.stop>
-      <div class="modal-header">
-        <div class="modal-title">
-          <el-icon class="modal-icon"><FolderAdd /></el-icon>
-          <h3>新建文件夹</h3>
+  <!-- 遮罩层 -->
+  <div v-if="show" class="drawer-overlay" @click="handleOverlayClick">
+    <!-- 抽屉容器 -->
+    <div class="drawer-container" :class="{ 'show': show }">
+      <!-- 抽屉头部 -->
+      <div class="drawer-header">
+        <div class="header-content">
+          <div class="header-icon">
+            <el-icon class="header-icon-svg"><FolderAdd /></el-icon>
+          </div>
+          <div class="header-text">
+            <h3 class="drawer-title">新建文件夹</h3>
+            <p class="drawer-subtitle">在指定位置创建一个新的文件夹</p>
+            
+            <!-- 文件夹信息输入 -->
+            <div class="header-form">
+              <div class="form-row">
+                <div class="form-group form-group-name">
+                  <label class="form-label required">
+                    <el-icon class="label-icon"><EditPen /></el-icon>
+                    文件夹名称
+                  </label>
+                  <el-input 
+                    v-model="formData.name" 
+                    placeholder="请输入文件夹名称"
+                    maxlength="100"
+                    class="form-input"
+                  />
+                </div>
+                
+                <div class="form-group form-group-desc">
+                  <label class="form-label">
+                    <el-icon class="label-icon"><EditPen /></el-icon>
+                    文件夹描述 (可选)
+                  </label>
+                  <el-input 
+                    v-model="formData.description" 
+                    placeholder="为您的文件夹添加一些描述"
+                    maxlength="500"
+                    class="form-input"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <button class="modal-close" @click="$emit('cancel')">
+        <button class="btn btn-close" @click="handleCancel">
           <el-icon><Close /></el-icon>
         </button>
       </div>
-      
-      <div class="modal-body">
-        <form @submit.prevent="handleSubmit">
-          <div class="form-group">
-            <label for="parentDirectory" class="form-label">创建位置</label>
-            <select
-              id="parentDirectory"
-              v-model="formData.parentId"
-              class="form-select"
-            >
-              <option :value="rootDirectoryId">根目录</option>
-              <option 
-                v-for="directory in filteredDirectories" 
-                :key="directory.id" 
-                :value="directory.id"
-              >
-                {{ getDisplayPath(directory) }}
-              </option>
-            </select>
+
+      <!-- 抽屉主体 -->
+      <div class="drawer-body">
+        <!-- 目标目录选择 -->
+        <div class="target-directory-section">
+          <div class="section-header">
+            <el-icon class="section-icon"><FolderOpened /></el-icon>
+            <h4>选择创建位置</h4>
           </div>
-          
-          <div class="form-group">
-            <label for="directoryName" class="form-label">文件夹名称 <span class="required">*</span></label>
-            <input
-              id="directoryName"
-              v-model="formData.name"
-              type="text"
-              class="form-input"
-              placeholder="请输入文件夹名称"
-              maxlength="100"
-              required
-            >
-            <div class="form-hint">最多100个字符</div>
+          <p class="section-description">新文件夹将被创建在您选择的目录下</p>
+
+          <!-- 目录树容器 -->
+          <div class="directory-tree-container">
+            <div class="tree-header">
+              <span class="tree-title">目录结构</span>
+              <div class="tree-actions">
+                <button 
+                  class="tree-action-btn" 
+                  title="移动到根目录"
+                  :class="{ active: formData.parentId === null || formData.parentId === rootDirectoryId }"
+                  @click="selectRootDirectory"
+                >
+                  <el-icon><HomeFilled /></el-icon>
+                </button>
+              </div>
+            </div>
+            <div class="directory-tree-content">
+              <!-- 根目录提示 -->
+              <div v-if="formData.parentId === null || formData.parentId === rootDirectoryId" class="root-selected-tip">
+                <el-icon class="tip-icon"><HomeFilled /></el-icon>
+                <span>已选择在根目录下创建</span>
+              </div>
+              
+              <el-tree
+                ref="treeRef"
+                :data="directories"
+                :props="{ label: 'name', children: 'children' }"
+                node-key="id"
+                highlight-current
+                :expand-on-click-node="false"
+                @node-click="handleNodeClick"
+                class="directory-tree"
+              />
+            </div>
           </div>
-          
-          <div class="form-group">
-            <label for="directoryDescription" class="form-label">文件夹描述</label>
-            <textarea
-              id="directoryDescription"
-              v-model="formData.description"
-              class="form-textarea"
-              placeholder="请输入文件夹描述（可选）"
-              rows="3"
-              maxlength="500"
-            ></textarea>
-            <div class="form-hint">最多500个字符，当前 {{ formData.description.length }}/500</div>
+
+          <!-- 错误提示 -->
+          <div v-if="validationError" class="error-message">
+            <el-icon class="error-icon"><Warning /></el-icon>
+            <span>{{ validationError }}</span>
           </div>
-          
-          <div class="form-preview" v-if="previewPath">
-            <div class="preview-label">预览路径：</div>
-            <div class="preview-path">{{ previewPath }}</div>
-          </div>
-        </form>
+        </div>
       </div>
-      
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" @click="$emit('cancel')">
+
+      <!-- 抽屉底部 -->
+      <div class="drawer-footer">
+        <button type="button" class="btn btn-secondary" @click="handleCancel">
           <el-icon class="btn-icon"><Close /></el-icon>
           取消
         </button>
         <button 
           type="button" 
           class="btn btn-primary" 
-          @click="handleSubmit" 
-          :disabled="!formData.name.trim() || isSubmitting"
+          @click="handleConfirm"
+          :disabled="isSubmitting || !canCreate"
         >
-          <el-icon class="btn-icon" v-if="!isSubmitting"><Check /></el-icon>
-          <div class="loading-spinner" v-if="isSubmitting"></div>
-          {{ isSubmitting ? '创建中...' : '创建' }}
+          <el-icon class="btn-icon" :class="{ 'loading': isSubmitting }">
+            <Loading v-if="isSubmitting" />
+            <Check v-else />
+          </el-icon>
+          {{ isSubmitting ? '创建中...' : '确认创建' }}
         </button>
       </div>
     </div>
   </div>
 </template>
 
-<script>
-import { ref, computed, watch } from 'vue'
-import toast from '@/utils/toast'
-// 导入Element Plus图标
-import { FolderAdd, Close, Check } from '@element-plus/icons-vue'
+<script setup>
+import { ref, watch, nextTick, computed } from 'vue'
+import { ElMessage } from 'element-plus'
+import { 
+  FolderAdd, 
+  Close, 
+  Check,
+  FolderOpened,
+  EditPen,
+  HomeFilled,
+  Warning,
+  Loading
+} from '@element-plus/icons-vue'
 
-export default {
-  name: 'CreateDirectoryModal',
-  components: {
-    FolderAdd,
-    Close,
-    Check
+const props = defineProps({
+  show: {
+    type: Boolean,
+    required: true
   },
-  props: {
-    show: {
-      type: Boolean,
-      default: false
-    },
-    directories: {
-      type: Array,
-      default: () => []
-    }
-  },
-  emits: ['create', 'cancel'],
-  setup(props, { emit }) {
-    const formData = ref({
-      name: '',
-      description: '',
-      parentId: null
-    })
-    
-    const isSubmitting = ref(false)
+  directories: {
+    type: Array,
+    required: true
+  }
+})
 
-    // 获取根目录ID（通常是第一个目录的ID，一般是1）
-    const rootDirectoryId = computed(() => {
-      // 如果有目录树，找到第一个根目录的ID
-      if (props.directories && props.directories.length > 0) {
-        return props.directories[0].id
-      }
-      // 默认返回1（通常根目录的ID是1）
-      return 1
-    })
+const emit = defineEmits(['create', 'cancel'])
 
-    // 可选择的目录列表（props.directories 已经是扁平化的数据，无需再次扁平化）
-    const availableDirectories = computed(() => {
-      const directories = props.directories.map(dir => ({
-        ...dir,
-        // 确保显示正确的路径
-        path: dir.path || `/${dir.name}`,
-        // 计算目录层级深度，用于排序
-        level: (dir.path || `/${dir.name}`).split('/').length - 1
-      }))
-      
-      // 按路径排序，确保父目录和子目录紧挨着
-      return directories.sort((a, b) => {
-        // 首先按路径字典序排序，这样父目录会在子目录前面
-        return a.path.localeCompare(b.path, 'zh-CN')
-      })
-    })
+const formRef = ref(null)
+const treeRef = ref(null)
+const isSubmitting = ref(false)
+const validationError = ref('')
 
-    // 过滤后的目录列表（移除根目录本身，避免重复）
-    const filteredDirectories = computed(() => {
-      return availableDirectories.value.filter(dir => {
-        // 只过滤掉根目录本身（ID 等于 rootDirectoryId 或者路径就是 '/'）
-        return dir.id !== rootDirectoryId.value && dir.path !== '/'
-      })
-    })
+const initialFormData = {
+  name: '',
+  parentId: null,
+  description: ''
+}
+const formData = ref({ ...initialFormData })
 
-    // 预览路径
-    const previewPath = computed(() => {
-      if (!formData.value.name.trim()) return ''
-      
-      if (formData.value.parentId === rootDirectoryId.value) {
-        return `/${formData.value.name}`
-      }
-      
-      const parentDir = availableDirectories.value.find(dir => dir.id === formData.value.parentId)
-      if (parentDir) {
-        const parentPath = parentDir.path
-        return `${parentPath}/${formData.value.name}`
-      }
-      
-      return `/${formData.value.name}`
-    })
+// 获取根目录ID
+const rootDirectoryId = computed(() => {
+  return props.directories.length > 0 ? props.directories[0].id : null
+})
 
-    // 获取显示路径（带缩进）
-    const getDisplayPath = (directory) => {
-      const level = directory.level || 0
-      const indent = '　'.repeat(level) // 使用全角空格作为缩进
-      return `${indent}${directory.path}`
-    }
+// 是否可以创建
+const canCreate = computed(() => {
+  return formData.value.name.trim() && formData.value.parentId !== null
+})
 
-    // 监听弹窗显示状态，重置表单
-    watch(() => props.show, (show) => {
-      if (show) {
-        formData.value = {
-          name: '',
-          description: '',
-          parentId: rootDirectoryId.value // 默认选择根目录
+watch(() => props.show, (newVal) => {
+  if (newVal) {
+    isSubmitting.value = false
+    validationError.value = ''
+    formData.value = { ...initialFormData }
+    nextTick(() => {
+      if (props.directories.length > 0) {
+        const rootNode = props.directories[0]
+        if (rootNode) {
+          formData.value.parentId = rootNode.id
+          treeRef.value?.setCurrentKey(rootNode.id)
         }
-        isSubmitting.value = false
       }
     })
+  }
+})
 
-    const handleSubmit = async () => {
-      const name = formData.value.name.trim()
-      if (!name) {
-        toast.warning('文件夹名称不能为空')
-        return
-      }
+const handleNodeClick = (data) => {
+  formData.value.parentId = data.id
+  validationError.value = ''
+}
 
-      if (name.length > 100) {
-        toast.warning('文件夹名称不能超过100个字符')
-        return
-      }
+const selectRootDirectory = () => {
+  if (props.directories.length > 0) {
+    const rootNode = props.directories[0]
+    formData.value.parentId = rootNode.id
+    treeRef.value?.setCurrentKey(rootNode.id)
+    validationError.value = ''
+  }
+}
 
-      if (formData.value.description.length > 500) {
-        toast.warning('文件夹描述不能超过500个字符')
-        return
-      }
+const handleConfirm = async () => {
+  // 验证表单
+  if (!formData.value.name.trim()) {
+    validationError.value = '文件夹名称不能为空'
+    return
+  }
+  
+  if (formData.value.name.length > 100) {
+    validationError.value = '文件夹名称长度不能超过100个字符'
+    return
+  }
+  
+  if (!formData.value.parentId) {
+    validationError.value = '必须选择一个创建位置'
+    return
+  }
+  
+  isSubmitting.value = true
+  validationError.value = ''
+  
+  // 模拟API调用延迟
+  setTimeout(() => {
+    emit('create', { ...formData.value })
+    // 在父组件中处理关闭和提示
+  }, 500)
+}
 
-      isSubmitting.value = true
+const handleCancel = () => {
+  emit('cancel')
+}
 
-      try {
-        const createData = {
-          name,
-          description: formData.value.description.trim(),
-          parentId: formData.value.parentId
-        }
-
-        await emit('create', createData)
-      } catch (error) {
-        console.error('创建文件夹失败:', error)
-      } finally {
-        isSubmitting.value = false
-      }
-    }
-
-    return {
-      formData,
-      isSubmitting,
-      rootDirectoryId,
-      availableDirectories,
-      filteredDirectories,
-      previewPath,
-      getDisplayPath,
-      handleSubmit
-    }
+// 处理遮罩点击
+const handleOverlayClick = (event) => {
+  if (event.target === event.currentTarget) {
+    emit('cancel')
   }
 }
 </script>
 
 <style scoped>
-.modal-overlay {
+/* 抽屉遮罩层 */
+.drawer-overlay {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  right: 0;
+  bottom: 0;
+  background: var(--color-overlay);
   z-index: 1000;
+  opacity: 0;
+  animation: fadeIn 0.3s ease-out forwards;
 }
 
-.modal-content {
-  background: white;
-  border-radius: 12px;
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* 抽屉容器 */
+.drawer-container {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 33.333%; /* 三分之一宽度 */
+  min-width: 400px;
+  max-width: 600px;
+  height: 100vh;
+  background: var(--color-bg-primary);
+  box-shadow: var(--shadow-2xl);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s ease-out;
   overflow: hidden;
-  max-width: 500px;
-  width: 90%;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  max-height: 90vh;
-  overflow-y: auto;
 }
 
-.modal-header {
+.drawer-container.show {
+  transform: translateX(0);
+}
+
+/* 抽屉头部 */
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: var(--spacing-xl);
+  border-bottom: 1px solid var(--color-border-light);
+  background: var(--color-bg-secondary);
+  flex-shrink: 0;
+}
+
+.header-content {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  flex: 1;
+}
+
+.header-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
+  border-radius: var(--border-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.header-icon-svg {
+  width: 24px;
+  height: 24px;
+  color: var(--color-text-inverse);
+  font-size: 24px;
+}
+
+.header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.drawer-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-xs) 0;
+}
+
+.drawer-subtitle {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  margin: 0 0 var(--spacing-lg) 0;
+}
+
+/* 头部表单 */
+.header-form {
+  margin-top: var(--spacing-md);
+}
+
+.form-row {
+  display: flex;
+  gap: var(--spacing-lg);
+  align-items: flex-start;
+}
+
+/* 关闭按钮 */
+.btn-close {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border-medium);
+  background: var(--color-bg-primary);
+  color: var(--color-text-tertiary);
+  border-radius: var(--border-radius-full);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  font-size: 16px;
+}
+
+.btn-close:hover {
+  background: var(--color-bg-tertiary);
+  border-color: var(--color-border-strong);
+  color: var(--color-text-secondary);
+}
+
+/* 抽屉主体 */
+.drawer-body {
+  flex: 1;
+  padding: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* 目标目录选择部分 */
+.target-directory-section {
+  padding: var(--spacing-xl);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.section-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--color-primary-600);
+  font-size: 20px;
+}
+
+.section-header h4 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.section-description {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin: 0 0 var(--spacing-lg) 0;
+}
+
+/* 目录树容器 */
+.directory-tree-container {
+  flex: 1;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--border-radius-lg);
+  background: var(--color-bg-primary);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.tree-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid #e5e7eb;
-  background: #f9fafb;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border-light);
 }
 
-.modal-title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #111827;
+.tree-title {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.tree-actions {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  gap: var(--spacing-xs);
 }
 
-.modal-icon {
-  width: 20px;
-  height: 20px;
-  font-size: 20px;
-  color: #3b82f6;
-}
-
-.modal-close {
-  background: none;
+.tree-action-btn {
+  width: 24px;
+  height: 24px;
   border: none;
-  font-size: 18px;
-  color: #6b7280;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  width: 32px;
-  height: 32px;
+  background: transparent;
+  border-radius: var(--border-radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--color-text-tertiary);
 }
 
-.modal-close:hover {
-  background: #f3f4f6;
-  color: #374151;
-  transform: scale(1.1);
+.tree-action-btn:hover {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
 }
 
-.modal-body {
-  padding: 20px;
+.tree-action-btn .el-icon {
+  width: 14px;
+  height: 14px;
+  font-size: 14px;
 }
 
-.modal-footer {
+.tree-action-btn.active {
+  background: var(--color-primary-500);
+  color: var(--color-text-inverse);
+}
+
+.tree-action-btn.active:hover {
+  background: var(--color-primary-600);
+}
+
+.directory-tree-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-sm);
+}
+
+/* 根目录选择提示 */
+.root-selected-tip {
   display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 20px;
-  border-top: 1px solid #e5e7eb;
-  background: #f9fafb;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: var(--color-success-50);
+  border: 1px solid var(--color-success-200);
+  border-radius: var(--border-radius-md);
+  color: var(--color-success-700);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--spacing-md);
 }
 
+.tip-icon {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+  color: var(--color-success-600);
+}
+
+/* 目录树样式 */
+.directory-tree {
+  background-color: transparent;
+}
+
+:deep(.el-tree-node__content) {
+  height: 36px;
+  border-radius: var(--border-radius-md);
+}
+
+:deep(.el-tree-node.is-current > .el-tree-node__content) {
+  background-color: var(--color-primary-100);
+  color: var(--color-primary-600);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* 错误消息 */
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--color-danger-600);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-danger-50);
+  border: 1px solid var(--color-danger-200);
+  border-radius: var(--border-radius-md);
+}
+
+.error-icon {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* 表单组 */
 .form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.form-group-name {
+  flex: 0 0 40%;
+}
+
+.form-group-desc {
+  flex: 1;
 }
 
 .form-label {
-  font-weight: 600;
-  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+}
+
+.form-label.required::after {
+  content: '*';
+  color: var(--color-danger-500);
+  margin-left: var(--spacing-xs);
+}
+
+.label-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--color-primary-600);
   font-size: 14px;
 }
 
-.required {
-  color: #ef4444;
+.form-input :deep(.el-input__wrapper) {
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border-medium);
+  background: var(--color-bg-primary);
+  transition: all var(--transition-fast);
+  min-height: 48px;
+  height: 48px;
+  padding: var(--spacing-md) var(--spacing-lg);
 }
 
-.form-input,
-.form-textarea,
-.form-select {
-  padding: 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background: white;
-  color: #374151;
-  font-family: inherit;
-  font-size: 14px;
-  transition: all 0.2s ease;
+.form-input :deep(.el-input__inner) {
+  height: 100%;
+  line-height: 1.5;
 }
 
-.form-input:focus,
-.form-textarea:focus,
-.form-select:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+.form-input :deep(.el-input__count) {
+  position: absolute;
+  right: var(--spacing-md);
+  bottom: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
 }
 
-.form-textarea {
-  resize: vertical;
-  min-height: 80px;
+.form-input :deep(.el-input__wrapper):hover {
+  border-color: var(--color-primary-300);
 }
 
-.form-hint {
-  font-size: 12px;
-  color: #6b7280;
+.form-input :deep(.el-input__wrapper.is-focus) {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 2px var(--color-primary-100);
 }
 
-.form-preview {
-  margin-top: 16px;
-  padding: 12px;
-  background: #f0f9ff;
-  border: 1px solid #bae6fd;
-  border-radius: 8px;
+.form-input :deep(.el-textarea__inner) {
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border-medium);
+  background: var(--color-bg-primary);
 }
 
-.preview-label {
-  font-size: 12px;
-  color: #0369a1;
-  font-weight: 500;
-  margin-bottom: 4px;
+/* 抽屉底部 */
+.drawer-footer {
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xl);
+  border-top: 1px solid var(--color-border-light);
+  background: var(--color-bg-secondary);
+  justify-content: flex-end;
+  flex-shrink: 0;
 }
 
-.preview-path {
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 14px;
-  color: #1e40af;
-  font-weight: 600;
-}
-
+/* 按钮样式 */
 .btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--border-radius-lg);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--transition-normal);
   border: none;
   cursor: pointer;
-  text-decoration: none;
-  font-size: 14px;
+  font-size: var(--font-size-base);
 }
 
 .btn:disabled {
@@ -413,26 +657,25 @@ export default {
   cursor: not-allowed;
 }
 
-.btn-secondary {
-  background: white;
-  color: #374151;
-  border: 1px solid #d1d5db;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background: #f9fafb;
-  border-color: #9ca3af;
-}
-
 .btn-primary {
-  background: #3b82f6;
-  color: white;
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
+  color: var(--color-text-inverse);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #2563eb;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-secondary {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-medium);
+}
+
+.btn-secondary:hover {
+  background: var(--color-bg-quaternary);
+  border-color: var(--color-primary-300);
 }
 
 .btn-icon {
@@ -441,40 +684,60 @@ export default {
   font-size: 18px;
 }
 
-.loading-spinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: white;
-  animation: spin 1s ease-in-out infinite;
+.btn-icon.loading {
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
+  from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .modal-content {
-    width: 95%;
-    max-width: none;
-    margin: 16px;
-  }
-  
-  .modal-header,
-  .modal-body,
-  .modal-footer {
-    padding: 16px;
-  }
-  
-  .modal-footer {
-    flex-direction: column-reverse;
-  }
-  
-  .btn {
+  .drawer-container {
     width: 100%;
-    justify-content: center;
+    min-width: unset;
+    max-width: unset;
+  }
+  
+  .drawer-header,
+  .target-directory-section,
+  .drawer-footer {
+    padding: var(--spacing-lg);
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+  
+  .header-form {
+    width: 100%;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+  
+  .form-group-name,
+  .form-group-desc {
+    flex: none;
+  }
+  
+  .directory-tree-container {
+    max-height: 300px;
+  }
+  
+  .form-label {
+    font-size: var(--font-size-xs);
+  }
+  
+  .form-input :deep(.el-input__wrapper) {
+    min-height: 44px;
+    height: 44px;
+    padding: var(--spacing-sm) var(--spacing-md);
   }
 }
 </style> 
