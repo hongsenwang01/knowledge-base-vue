@@ -89,11 +89,11 @@ export const fileAPI = {
   /**
    * 获取目录下的文件列表
    * @param {number} directoryId 目录ID
-   * @returns {Promise<Array>} 文件列表
+   * @returns {Promise<Object>} API响应 { code, message, data, timestamp }
    */
   async getFilesByDirectory(directoryId) {
     const response = await apiClient.get(`/api/v1/files/directory/${directoryId}`)
-    return response.data || []
+    return response // 返回完整的API响应，包含 { code, message, data, timestamp }
   },
 
   /**
@@ -171,12 +171,13 @@ export const fileDataTransform = {
       extension: this.getFileExtension(file.originalName || file.name),
       size: file.fileSize || file.size || 0,
       formattedSize: file.fileSizeFormatted || this.formatFileSize(file.fileSize || file.size || 0),
-      mimeType: file.mimeType,
+      fileType: file.fileType || 'unknown',
+      mimeType: file.mimeType || '',
       directoryId: file.directoryId,
-      directoryName: file.directoryName,
+      directoryName: file.directoryName || '',
       description: file.description || '',
       downloadCount: file.downloadCount || 0,
-      md5Hash: file.md5Hash,
+      md5Hash: file.md5Hash || '',
       createdAt: file.createdAt,
       updatedAt: file.updatedAt,
       createTime: file.createdAt,

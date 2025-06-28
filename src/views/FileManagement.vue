@@ -88,6 +88,17 @@
               <div class="loading-spinner"></div>
               <p>加载文件中...</p>
             </div>
+            <div v-else-if="fileStore.error" class="list-error">
+              <div class="error-icon">
+                <i data-lucide="alert-circle" class="error-icon-svg"></i>
+              </div>
+              <h3>加载失败</h3>
+              <p>{{ fileStore.error }}</p>
+              <button class="btn btn-primary" @click="reloadCurrentDirectory">
+                <i data-lucide="refresh-cw" class="btn-icon"></i>
+                重新加载
+              </button>
+            </div>
             <div v-else-if="fileStore.files.length > 0" class="file-grid">
               <div 
                 v-for="file in fileStore.sortedFiles" 
@@ -160,14 +171,24 @@ export default {
         window.lucide.createIcons()
       }
       
-      // 加载目录树和文件数据
+      // 加载目录树
       await directoryStore.fetchDirectoryTree()
-      // 默认加载根目录下的文件，但根目录通常没有直接文件，所以加载第一个子目录的文件
-      if (directoryStore.directoryTree.length > 0 && directoryStore.directoryTree[0].children) {
-        const firstChild = directoryStore.directoryTree[0].children[0]
-        if (firstChild) {
+      
+      // 默认选择第一个可用的目录
+      if (directoryStore.directoryTree.length > 0) {
+        const firstDirectory = directoryStore.directoryTree[0]
+        
+        // 如果第一个目录有子目录，选择第一个子目录
+        if (firstDirectory.children && firstDirectory.children.length > 0) {
+          const firstChild = firstDirectory.children[0]
           currentDirectoryId.value = firstChild.id
+          directoryStore.setCurrentDirectory(firstChild)
           await loadDirectoryFiles(firstChild.id)
+        } else {
+          // 否则选择第一个目录本身
+          currentDirectoryId.value = firstDirectory.id
+          directoryStore.setCurrentDirectory(firstDirectory)
+          await loadDirectoryFiles(firstDirectory.id)
         }
       }
     })
@@ -181,11 +202,23 @@ export default {
     const loadDirectoryFiles = async (directoryId) => {
       try {
         fileStore.loading = true
-        const filesData = await fileAPI.getFilesByDirectory(directoryId)
+        fileStore.error = null
+        
+        console.log('正在加载目录文件:', directoryId)
+        const response = await fileAPI.getFilesByDirectory(directoryId)
+        
+        // 处理API响应 - response包含 { code, message, data, timestamp }
+        const filesData = response.data || []
+        console.log('获取到文件数据:', filesData)
+        
+        // 转换文件数据格式
         const transformedFiles = filesData.map(file => fileDataTransform.transformFile(file))
         fileStore.files = transformedFiles
+        
+        console.log('文件列表加载成功，共', transformedFiles.length, '个文件')
       } catch (error) {
         console.error('加载文件列表失败:', error)
+        fileStore.error = error.message || '加载文件列表失败'
         fileStore.files = []
       } finally {
         fileStore.loading = false
@@ -241,6 +274,13 @@ export default {
       alert('文件上传失败: ' + error.message)
     }
 
+    // 重新加载当前目录
+    const reloadCurrentDirectory = async () => {
+      if (currentDirectoryId.value && currentDirectoryId.value !== 'root') {
+        await loadDirectoryFiles(currentDirectoryId.value)
+      }
+    }
+
     const getFileIcon = (extension) => {
       const iconMap = {
         pdf: 'file-text',
@@ -291,6 +331,7 @@ export default {
       handleUploadDialogClose,
       handleUploadSuccess,
       handleUploadError,
+      reloadCurrentDirectory,
       getFileIcon,
       formatDate
     }
@@ -620,6 +661,46 @@ export default {
   justify-content: center;
   padding: var(--spacing-xl);
   color: var(--color-text-secondary);
+}
+
+/* 错误状态 */
+.list-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-2xl);
+  color: var(--color-text-secondary);
+  min-height: 400px;
+}
+
+.error-icon {
+  width: 80px;
+  height: 80px;
+  margin-bottom: var(--spacing-lg);
+  background: linear-gradient(135deg, var(--color-danger-100), var(--color-danger-200));
+  border-radius: var(--border-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-icon-svg {
+  width: 40px;
+  height: 40px;
+  color: var(--color-danger-600);
+}
+
+.list-error h3 {
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.list-error p {
+  margin-bottom: var(--spacing-xl);
+  color: var(--color-text-tertiary);
 }
 
 .loading-spinner {
