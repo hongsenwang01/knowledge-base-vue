@@ -83,52 +83,15 @@
           </div>
 
           <!-- 文件列表区域 -->
-          <div class="file-list">
-            <div v-if="fileStore.loading" class="list-loading">
-              <div class="loading-spinner"></div>
-              <p>加载文件中...</p>
-            </div>
-            <div v-else-if="fileStore.error" class="list-error">
-              <div class="error-icon">
-                <i data-lucide="alert-circle" class="error-icon-svg"></i>
-              </div>
-              <h3>加载失败</h3>
-              <p>{{ fileStore.error }}</p>
-              <button class="btn btn-primary" @click="reloadCurrentDirectory">
-                <i data-lucide="refresh-cw" class="btn-icon"></i>
-                重新加载
-              </button>
-            </div>
-            <div v-else-if="fileStore.files.length > 0" class="file-grid">
-              <div 
-                v-for="file in fileStore.sortedFiles" 
-                :key="file.id"
-                class="file-item"
-                @click="selectFile(file)"
-                :class="{ selected: fileStore.selectedFileIds.includes(file.id) }"
-              >
-                <div class="file-icon">
-                  <i :data-lucide="getFileIcon(file.extension)" class="file-icon-svg"></i>
-                </div>
-                <div class="file-info">
-                  <h4 class="file-name">{{ file.name }}</h4>
-                  <p class="file-details">{{ file.formattedSize }} • {{ formatDate(file.updatedAt) }}</p>
-                </div>
-                <div class="file-actions">
-                  <button class="action-btn" @click.stop="downloadFile(file)">
-                    <i data-lucide="download" class="action-icon"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div v-else class="list-placeholder">
-              <div class="placeholder-icon">
-                <i data-lucide="folder-open" class="placeholder-icon-svg"></i>
-              </div>
-              <h3>此目录为空</h3>
-              <p>这里还没有文件，可以上传一些文件</p>
-            </div>
-          </div>
+          <FileListView
+            :files="fileStore.sortedFiles"
+            :loading="fileStore.loading"
+            :error="fileStore.error"
+            :selected-file-ids="fileStore.selectedFileIds"
+            @file-select="selectFile"
+            @file-download="downloadFile"
+            @reload="reloadCurrentDirectory"
+          />
         </main>
       </div>
     </div>
@@ -150,13 +113,15 @@ import { useDirectoryStore } from '@/stores/directory'
 import { useFileStore } from '@/stores/file'
 import TreeNode from '@/components/common/TreeNode.vue'
 import FileUploadDialog from '@/components/common/FileUploadDialog.vue'
+import FileListView from '@/components/FileListView.vue'
 import { fileAPI, fileDataTransform } from '@/api/file.js'
 
 export default {
   name: 'FileManagement',
   components: {
     TreeNode,
-    FileUploadDialog
+    FileUploadDialog,
+    FileListView
   },
   setup() {
     const directoryStore = useDirectoryStore()
@@ -281,44 +246,6 @@ export default {
       }
     }
 
-    const getFileIcon = (extension) => {
-      const iconMap = {
-        pdf: 'file-text',
-        doc: 'file-text',
-        docx: 'file-text',
-        txt: 'file-text',
-        md: 'file-text',
-        jpg: 'image',
-        jpeg: 'image',
-        png: 'image',
-        gif: 'image',
-        mp4: 'video',
-        mp3: 'music',
-        zip: 'archive',
-        rar: 'archive',
-        xlsx: 'file-spreadsheet',
-        xls: 'file-spreadsheet',
-        pptx: 'presentation',
-        ppt: 'presentation',
-        js: 'code',
-        ts: 'code',
-        html: 'code',
-        css: 'code',
-        vue: 'code'
-      }
-      return iconMap[extension?.toLowerCase()] || 'file'
-    }
-
-    const formatDate = (dateString) => {
-      if (!dateString) return ''
-      const date = new Date(dateString)
-      return date.toLocaleDateString('zh-CN', {
-        year: 'numeric',
-        month: 'numeric',
-        day: 'numeric'
-      })
-    }
-
     return {
       directoryStore,
       fileStore,
@@ -331,9 +258,7 @@ export default {
       handleUploadDialogClose,
       handleUploadSuccess,
       handleUploadError,
-      reloadCurrentDirectory,
-      getFileIcon,
-      formatDate
+      reloadCurrentDirectory
     }
   }
 }
@@ -477,10 +402,11 @@ export default {
   background: var(--color-bg-overlay);
   border: 1px solid var(--color-border-light);
   border-radius: var(--border-radius-xl);
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
   backdrop-filter: var(--backdrop-blur-lg);
+  min-width: 0; /* 允许flex子项收缩 */
 }
 
 /* 工具栏 */
@@ -563,16 +489,10 @@ export default {
   cursor: not-allowed;
 }
 
-/* 文件列表区域 */
-.file-list {
-  flex: 1;
-  padding: var(--spacing-2xl);
-  overflow-y: auto;
-}
+
 
 /* 占位符样式 */
-.tree-placeholder,
-.list-placeholder {
+.tree-placeholder {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -580,14 +500,7 @@ export default {
   text-align: center;
   padding: var(--spacing-2xl);
   color: var(--color-text-secondary);
-}
-
-.tree-placeholder {
   min-height: 200px;
-}
-
-.list-placeholder {
-  min-height: 400px;
 }
 
 .placeholder-icon {
@@ -607,15 +520,13 @@ export default {
   color: var(--color-primary-600);
 }
 
-.tree-placeholder h4,
-.list-placeholder h3 {
+.tree-placeholder h4 {
   color: var(--color-text-primary);
   margin-bottom: var(--spacing-sm);
   font-weight: var(--font-weight-semibold);
 }
 
-.tree-placeholder p,
-.list-placeholder p {
+.tree-placeholder p {
   margin-bottom: var(--spacing-xl);
   color: var(--color-text-tertiary);
 }
@@ -653,54 +564,13 @@ export default {
 }
 
 /* 加载状态 */
-.tree-loading,
-.list-loading {
+.tree-loading {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: var(--spacing-xl);
   color: var(--color-text-secondary);
-}
-
-/* 错误状态 */
-.list-error {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: var(--spacing-2xl);
-  color: var(--color-text-secondary);
-  min-height: 400px;
-}
-
-.error-icon {
-  width: 80px;
-  height: 80px;
-  margin-bottom: var(--spacing-lg);
-  background: linear-gradient(135deg, var(--color-danger-100), var(--color-danger-200));
-  border-radius: var(--border-radius-lg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.error-icon-svg {
-  width: 40px;
-  height: 40px;
-  color: var(--color-danger-600);
-}
-
-.list-error h3 {
-  color: var(--color-text-primary);
-  margin-bottom: var(--spacing-sm);
-  font-weight: var(--font-weight-semibold);
-}
-
-.list-error p {
-  margin-bottom: var(--spacing-xl);
-  color: var(--color-text-tertiary);
 }
 
 .loading-spinner {
@@ -718,105 +588,7 @@ export default {
   100% { transform: rotate(360deg); }
 }
 
-/* 文件网格样式 */
-.file-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: var(--spacing-lg);
-  padding: var(--spacing-md);
-}
 
-.file-item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
-  background: var(--color-bg-overlay);
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--border-radius-lg);
-  cursor: pointer;
-  transition: all var(--transition-normal);
-  backdrop-filter: var(--backdrop-blur-sm);
-}
-
-.file-item:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--color-primary-300);
-}
-
-.file-item.selected {
-  background: var(--color-primary-50);
-  border-color: var(--color-primary-500);
-  box-shadow: 0 0 0 3px var(--color-primary-100);
-}
-
-.file-icon {
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, var(--color-primary-100), var(--color-primary-200));
-  border-radius: var(--border-radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.file-icon-svg {
-  width: 24px;
-  height: 24px;
-  color: var(--color-primary-600);
-}
-
-.file-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.file-name {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-primary);
-  margin-bottom: var(--spacing-xs);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.file-details {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  margin: 0;
-}
-
-.file-actions {
-  display: flex;
-  gap: var(--spacing-xs);
-}
-
-.action-btn {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-medium);
-  border-radius: var(--border-radius-md);
-  cursor: pointer;
-  transition: all var(--transition-normal);
-}
-
-.action-btn:hover {
-  background: var(--color-primary-500);
-  border-color: var(--color-primary-500);
-  color: var(--color-text-inverse);
-}
-
-.action-icon {
-  width: 16px;
-  height: 16px;
-}
 
 /* 响应式设计 */
 @media (max-width: 1024px) {
