@@ -90,6 +90,7 @@
             :selected-file-ids="fileStore.selectedFileIds"
             @file-select="selectFile"
             @file-download="downloadFile"
+            @file-delete="handleDeleteFile"
             @reload="reloadCurrentDirectory"
           />
         </main>
@@ -208,6 +209,27 @@ export default {
         window.URL.revokeObjectURL(url)
       } catch (error) {
         console.error('下载文件失败:', error)
+        alert('下载失败: ' + error.message)
+      }
+    }
+
+    const handleDeleteFile = async (file) => {
+      try {
+        console.log('正在删除文件:', file.name, 'ID:', file.id)
+        
+        // 调用API删除文件
+        await fileAPI.deleteFile(file.id)
+        
+        console.log('文件删除成功:', file.name)
+        alert('文件删除成功！')
+        
+        // 刷新当前目录的文件列表
+        if (currentDirectoryId.value && currentDirectoryId.value !== 'root') {
+          await loadDirectoryFiles(currentDirectoryId.value)
+        }
+      } catch (error) {
+        console.error('删除文件失败:', error)
+        alert('删除失败: ' + (error.message || '未知错误'))
       }
     }
 
@@ -254,6 +276,7 @@ export default {
       selectDirectory,
       selectFile,
       downloadFile,
+      handleDeleteFile,
       showUploadDialog,
       handleUploadDialogClose,
       handleUploadSuccess,

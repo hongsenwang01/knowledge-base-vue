@@ -49,15 +49,22 @@
           </div>
           <div class="col-size">{{ file.formattedSize }}</div>
           <div class="col-date">{{ formatDate(file.updatedAt) }}</div>
-          <div class="col-actions">
-            <button 
-              class="action-btn" 
-              @click.stop="handleDownload(file)"
-              title="下载文件"
-            >
-              <i data-lucide="download"></i>
-            </button>
-          </div>
+                     <div class="col-actions">
+             <button 
+               class="action-btn download-btn" 
+               @click.stop="handleDownload(file)"
+               title="下载文件"
+             >
+               <i data-lucide="download"></i>
+             </button>
+             <button 
+               class="action-btn delete-btn" 
+               @click.stop="handleDelete(file)"
+               title="删除文件"
+             >
+               <i data-lucide="trash-2"></i>
+             </button>
+           </div>
         </div>
       </div>
     </div>
@@ -96,7 +103,7 @@ export default {
       default: () => []
     }
   },
-  emits: ['file-select', 'file-download', 'reload'],
+  emits: ['file-select', 'file-download', 'file-delete', 'reload'],
   setup(props, { emit }) {
     
     const handleFileClick = (file) => {
@@ -105,6 +112,12 @@ export default {
 
     const handleDownload = (file) => {
       emit('file-download', file)
+    }
+
+    const handleDelete = (file) => {
+      if (confirm(`确定要删除文件 "${file.name}" 吗？`)) {
+        emit('file-delete', file)
+      }
     }
 
     const getFileIcon = (extension) => {
@@ -166,6 +179,7 @@ export default {
     return {
       handleFileClick,
       handleDownload,
+      handleDelete,
       getFileIcon,
       formatDate
     }
@@ -278,7 +292,7 @@ export default {
 
 .list-header {
   display: grid;
-  grid-template-columns: 2fr 120px 160px 80px;
+  grid-template-columns: 2fr 120px 160px 120px;
   gap: 1rem;
   padding: 1rem 1.5rem;
   background: #f9fafb;
@@ -295,7 +309,7 @@ export default {
 
 .file-item {
   display: grid;
-  grid-template-columns: 2fr 120px 160px 80px;
+  grid-template-columns: 2fr 120px 160px 120px;
   gap: 1rem;
   padding: 1rem 1.5rem;
   border-bottom: 1px solid #f3f4f6;
@@ -377,6 +391,7 @@ export default {
 .col-actions {
   display: flex;
   justify-content: center;
+  gap: 0.5rem;
 }
 
 .action-btn {
@@ -390,17 +405,19 @@ export default {
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;
-  opacity: 0;
+  opacity: 1; /* 默认显示 */
 }
 
-.file-item:hover .action-btn,
-.file-item.selected .action-btn {
-  opacity: 1;
-}
-
-.action-btn:hover {
+.download-btn:hover {
   background: #3b82f6;
   border-color: #3b82f6;
+  color: white;
+  transform: scale(1.05);
+}
+
+.delete-btn:hover {
+  background: #ef4444;
+  border-color: #ef4444;
   color: white;
   transform: scale(1.05);
 }
@@ -449,7 +466,7 @@ export default {
 @media (max-width: 768px) {
   .list-header,
   .file-item {
-    grid-template-columns: 1fr 80px 60px;
+    grid-template-columns: 1fr 80px 100px;
     gap: 0.5rem;
     padding: 0.75rem 1rem;
   }
@@ -469,16 +486,19 @@ export default {
   }
   
   .action-btn {
-    opacity: 1; /* 移动端始终显示 */
     width: 28px;
     height: 28px;
+  }
+  
+  .col-actions {
+    gap: 0.25rem;
   }
 }
 
 @media (max-width: 480px) {
   .list-header,
   .file-item {
-    grid-template-columns: 1fr 50px;
+    grid-template-columns: 1fr 80px;
   }
   
   .col-size {
@@ -491,6 +511,16 @@ export default {
   
   .file-name {
     font-size: 0.875rem;
+  }
+  
+  .action-btn {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .action-btn i {
+    width: 12px;
+    height: 12px;
   }
 }
 </style>
